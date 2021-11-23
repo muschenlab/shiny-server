@@ -1,0 +1,1023 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="168.22408mm"
+   height="36.418411mm"
+   viewBox="0 0 168.22408 36.418411"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (unknown)"
+   sodipodi:docname="navlogo.svg"
+   inkscape:export-filename="/srv/shiny-server/assets/nav.png"
+   inkscape:export-xdpi="26.503077"
+   inkscape:export-ydpi="26.503077">
+  <defs
+     id="defs2">
+    <clipPath
+       id="SVGID_2_">
+      <use
+         xlink:href="#SVGID_1_"
+         overflow="visible"
+         id="use5"
+         style="overflow:visible"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.50175781"
+     inkscape:cx="325.46645"
+     inkscape:cy="107.69729"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="813"
+     inkscape:window-height="995"
+     inkscape:window-x="867"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-82.69391,-168.04945)">
+    <polygon
+       transform="matrix(0.26458333,0,0,0.26458333,72.186644,160.00881)"
+       clip-path="url(#SVGID_2_)"
+       points="99.212,23.94 164.548,61.574 164.548,136.852 99.212,174.484 33.878,136.852 33.878,61.574 "
+       id="polygon8"
+       style="fill:#ff867f"
+       inkscape:export-filename="/srv/shiny-server/hexagons/ccle.png"
+       inkscape:export-xdpi="139.99904"
+       inkscape:export-ydpi="139.99904" />
+    <polygon
+       style="fill:#cccccc;stroke:#ffffff;stroke-width:2;stroke-miterlimit:10"
+       id="polygon12"
+       points="99.212,166.879 40.712,133.045 40.712,65.378 99.212,31.545 157.713,65.378 157.713,133.045 "
+       stroke-miterlimit="10"
+       transform="matrix(0.26458333,0,0,0.26458333,72.186777,160.00881)"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.5100193px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="116.27032"
+       y="194.17354"
+       id="text264"
+       inkscape:export-filename="/srv/shiny-server/hexagons/ccle.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077"><tspan
+         sodipodi:role="line"
+         id="tspan262"
+         x="116.27032"
+         y="194.17354"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.5100193px;line-height:1.25;font-family:'URW Gothic L';-inkscape-font-specification:'URW Gothic L, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#b3b3b3;stroke:none;stroke-width:0.26458332">MüschenLab </tspan></text>
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.017304,183.63714 0.04606,2.48662 1.059337,-3.1313 z"
+       id="path1082"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.122699,182.99246 -1.059337,3.1313 4.007056,-2.53267 z"
+       id="path1086"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.122699,182.99246 1.565976,-0.41444 3.270125,-0.13814 -1.888382,1.15121 z"
+       id="path1088"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.063362,186.12376 1.519918,2.9471 2.458351,-5.45099 z"
+       id="path1090"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.063362,186.12376 0.644814,2.855 -0.322407,1.42751 1.197511,-1.33541 z"
+       id="path1092"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.58328,189.07086 -0.230291,1.79589 -0.96722,-0.46048 z"
+       id="path1094"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.385769,190.40627 0.506639,1.65774 0.460581,-1.19726 z"
+       id="path1096"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.892408,192.06401 0.967221,1.79589 -0.04606,-1.70379 z"
+       id="path1100"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.81357,192.15611 0.921163,2.07218 -0.875104,-0.36839 z"
+       id="path1102"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.859629,193.8599 -0.230291,0.50653 1.47386,0.13815 z"
+       id="path1104"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.58328,189.07086 1.381743,0.64468 -1.059336,1.28935 z"
+       id="path1106"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.905687,191.00489 0.96722,0.73678 0.09212,-2.02613 z"
+       id="path1108"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 89.905687,191.00489 0.460581,1.15122 0.506639,-0.41444 z"
+       id="path1110"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.366268,192.15611 1.243569,1.19726 -0.73693,-1.6117 z"
+       id="path1112"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.366268,192.15611 0.564105,1.78454 0.679464,-0.58728 z"
+       id="path1114"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.930373,193.94065 h 0.797916 l -0.118452,-0.58728 z"
+       id="path1116"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.930373,193.94065 1.286436,0.78147 -0.48852,-0.78147 z"
+       id="path1118"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 91.190917,194.16858 0.03257,0.5861 0.993324,-0.0326 z"
+       id="path1120"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.965023,189.71554 1.105395,-6.12445 -2.487138,5.47977 z"
+       id="path1122"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.965023,189.71554 1.479763,-1.79871 0.586223,-2.81654 -0.946198,-1.40271 z"
+       id="path1124"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 92.041631,183.61987 0.842822,0.30821 0.602509,0.97684 -0.309397,2.13276 -0.732779,0.87915 0.586223,-2.81654 z"
+       id="path1126"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 93.9588,182.43988 1.59623,2.18827 -3.484612,-1.03706 z"
+       id="path1128"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 92.884453,183.92808 0.602509,0.97684 4.005864,2.99563 -1.937796,-3.2724 z"
+       id="path1130"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 93.177565,187.03768 1.22166,0.84921 -0.900749,-2.87548 z"
+       id="path1132"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 92.444786,187.91683 2.029393,0.0753 -1.296614,-0.95445 z"
+       id="path1134"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 93.556049,184.98263 0.866325,2.95804 3.070452,-0.0401 z"
+       id="path1136"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 96.971738,187.98195 1.221299,1.10708 -0.700211,-1.18848 z"
+       id="path1138"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 96.968859,188.0539 0.735659,2.20734 0.488519,-1.17221 z"
+       id="path1140"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.704518,190.26124 -0.03257,0.79774 0.586225,-0.79774 -0.06514,-1.17221 z"
+       id="path1142"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.67195,191.05898 0.179124,0.73263 0.423384,-0.47214 -0.01627,-1.05823 z"
+       id="path1144"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.851074,191.79161 -0.211692,1.79087 0.700211,-0.89544 z"
+       id="path1146"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.274458,191.31947 0.06513,1.36757 -0.488519,-0.89543 z"
+       id="path1148"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.639382,193.58248 0.781631,0.0488 -0.08142,-0.94428 z"
+       id="path1150"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.639382,193.58248 0.56994,0.84659 0.472237,-0.0977 -0.03257,-0.56983 -0.227978,-0.13024 z"
+       id="path1152"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.648991,193.76156 0.08142,1.02568 0.781632,-1.40013 z"
+       id="path1154"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.512043,193.38711 0.32568,0.42329 -1.107314,0.97684 z"
+       id="path1156"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.837723,193.8104 0.11399,0.97684 c 0,0 -1.221304,0 -1.221304,0 z"
+       id="path1158"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.512043,193.38711 -0.0326,-0.56982 -1.058462,0.81403 0.227978,0.13024 z"
+       id="path1160"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.421013,193.63132 0.732782,-1.88855 0.325678,1.07452 z"
+       id="path1162"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.153795,191.74277 -0.89562,-1.48153 0.162838,3.37008 z"
+       id="path1164"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.153795,191.74277 0.325678,-1.26989 -1.221298,-0.21164 z"
+       id="path1166"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.479473,190.47288 -1.286436,-1.38385 0.06514,1.17221 z"
+       id="path1168"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.479473,190.47288 -0.03257,-2.01879 -1.253869,0.63494 z"
+       id="path1170"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.446906,188.45409 0.749064,-0.79775 0.0326,-0.84659 -1.253869,-2.34441 -3.419639,0.16281 z"
+       id="path1172"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.492826,187.90055 1.95408,0.55354 -1.253869,0.63494 z"
+       id="path1174"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 95.55503,184.62815 1.742388,-3.54917 -3.338618,1.3609 z"
+       id="path1176"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.297418,181.07898 1.677251,3.38636 -3.419639,0.16281 z"
+       id="path1178"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.297418,181.07898 2.882262,0.24421 0.0489,5.48656 z"
+       id="path1180"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.17968,181.32319 0.56994,1.96995 0.13027,2.88167 -0.65135,0.87915 z"
+       id="path1182"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.87989,186.17481 0.50481,-0.91172 -0.63508,-1.96995 z"
+       id="path1184"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.74962,183.29314 1.20502,-1.26989 0.16284,-0.92799 -1.27015,0.0163 -0.66765,0.21165 z"
+       id="path1186"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 101.95464,182.02325 -0.56994,3.23984 -0.63508,-1.96995 z"
+       id="path1188"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.11748,181.09526 1.07474,-0.26049 0.51714,0.64538 z"
+       id="path1190"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.77845,181.53484 -0.42339,0.76518 -0.27682,-0.34189 -1.1236,0.0651 0.16284,-0.92799 z"
+       id="path1192"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.09045,181.98866 -0.63101,0.47824 0.7165,0.28898 0.17912,-0.45586 z"
+       id="path1194"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.40042,182.5483 -0.26666,2.30778 -0.74906,0.40701 0.56994,-3.23984 1.01368,-0.057 z"
+       id="path1196"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.13376,184.85608 1.02275,-2.10452 -0.75609,-0.20326 z"
+       id="path1198"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.13376,184.85608 0.27683,1.00939 0.0814,-0.43957 0.3094,0.86287 0.17912,-0.91171 0.18534,-2.6255 z"
+       id="path1200"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.98053,185.37706 0.3094,0.91171 0.19541,-1.40013 -0.3094,-2.13276 z"
+       id="path1202"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.35506,182.30002 0.9909,0.2926 -0.86062,2.29602 -0.3094,-2.13276 z"
+       id="path1204"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.77845,181.53484 0.58622,1.04195 -0.99332,-0.29305 z"
+       id="path1206"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.36467,182.57679 1.07475,1.04196 -0.7165,0.4233 -0.14656,0.40701 -0.63507,0.47214 -0.43292,-0.0541 z"
+       id="path1208"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.43942,183.61875 0.29311,0.66751 -0.24903,1.02181 -0.58146,-0.67992 0.10634,-0.35772 -0.2466,-0.25285 z"
+       id="path1210"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.57636,184.44906 0.32568,0.17909 0.0977,-0.34189 -0.29842,-0.19529 z"
+       id="path1212"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.94129,184.9212 c 0,0 0.4071,0.6675 0.47223,0.65122 0.0651,-0.0163 0.34197,-0.40701 0.34197,-0.40701 l 0.62726,0.16568 -0.48071,-0.70294 -0.32568,-0.17909 z"
+       id="path1214"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="csccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.77845,181.53484 1.65384,-0.406 -1.55614,-0.91273 z"
+       id="path1216"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.87615,180.21611 -0.68393,0.61866 0.58623,0.70007 z"
+       id="path1218"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.87615,180.21611 1.33529,-0.60238 0.24019,1.54258 z"
+       id="path1220"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.21144,179.61373 0.70021,0.84659 -0.45595,0.65631 z"
+       id="path1222"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.21144,179.61373 1.25387,-0.61867 -0.55366,1.46526 z"
+       id="path1224"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.43274,179.03576 0.29311,0.74077 -0.76942,0.68379 z"
+       id="path1226"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.46531,178.99506 0.4071,-0.34189 -0.14656,1.12336 z"
+       id="path1228"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.87241,178.65317 0.68393,-0.24421 -0.83049,1.36757 z"
+       id="path1230"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.87241,178.65317 0.99332,-2.49093 -0.30939,2.24672 z"
+       id="path1232"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.46531,178.99506 -0.4071,-0.70006 -0.84677,1.31873 z"
+       id="path1234"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 106.05821,178.295 0.70021,-1.46526 -0.92819,0.66751 v 0.5047 z"
+       id="path1236"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.83023,177.49725 -0.58622,0.0163 0.58622,0.48842 z"
+       id="path1238"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.83023,177.49725 c 0,0 -0.0814,-1.15592 -0.11399,-1.07452 -0.0326,0.0814 -0.47223,1.0908 -0.47223,1.0908 z"
+       id="path1240"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.24401,177.51353 -0.27683,-1.18848 -0.29311,1.26988 0.53737,2.0188 z"
+       id="path1242"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 105.24401,177.51353 -0.0326,2.1002 0.84677,-1.31873 z"
+       id="path1244"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.67407,177.59493 -0.34197,1.26989 0.87934,0.74891 z"
+       id="path1246"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.67407,177.59493 -0.42339,0.26049 -0.32568,0.53726 -0.26054,0.65122 0.66764,-0.17908 z"
+       id="path1248"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 104.3321,178.86482 -0.45595,1.35129 1.33529,-0.60238 z"
+       id="path1250"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.87615,180.21611 -0.21169,-1.17221 0.66764,-0.17908 z"
+       id="path1252"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.66446,179.0439 -0.47224,-0.87915 -0.0651,-0.65122 0.79791,0.87915 z"
+       id="path1254"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 103.0131,180.78593 0.29311,-0.47214 0.0326,-0.76519 -0.53737,0.35818 -0.68393,1.18848 z"
+       id="path1256"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.11748,181.09526 -0.5048,-0.45586 1.15616,-1.36757 0.0326,0.63495 z"
+       id="path1258"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.76884,179.27183 0.37453,-0.65122 0.0814,0.45586 -0.42338,0.83031 z"
+       id="path1260"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 102.16633,179.90678 -0.96075,-0.0651 -0.66765,0.35817 1.07475,0.43958 z"
+       id="path1262"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.53793,180.19983 -1.465555,-0.35818 0.651358,-0.73262 1.481847,0.73262 z"
+       id="path1264"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.723733,179.10903 c 0,0 0.358247,-0.65123 0.423377,-0.65123 0.0651,0 1.05847,1.38385 1.05847,1.38385 z"
+       id="path1266"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.17968,178.4578 0.3094,-0.55354 0.7165,1.93739 z"
+       id="path1268"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.45651,177.74146 c 0,0 0.5048,0.0326 0.47224,0.14652 -0.0326,0.11397 -0.0814,0.97684 -0.0814,0.97684 0,0 -0.42339,-1.28617 -0.39082,-1.12336 z"
+       id="path1270"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.50257,177.67814 0.47503,-0.58791 v 0.78147 z"
+       id="path1272"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.9776,177.09023 0.18175,-0.24502 0.44887,0.0891 -0.63062,0.93736 z"
+       id="path1276"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 101.21116,176.81643 0.69463,-0.3937 0.48852,-0.0163 -0.78609,0.52789 z"
+       id="path1278"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 100.17968,178.4578 -0.667637,-0.78147 H 99.05609 l -0.03257,0.76519 0.700213,0.66751 z"
+       id="path1280"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.512043,177.67633 -0.537374,-1.31058 -0.227975,-0.17095 0.309396,1.48153 z"
+       id="path1282"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.722267,176.0727 0.341964,-0.51284 0.03257,0.42329 -0.122132,0.3826 z"
+       id="path1284"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.05609,177.67633 -0.602507,-1.02567 0.569939,1.79086 z"
+       id="path1286"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.453583,176.65066 -0.260546,-1.13964 -0.130271,1.53037 z"
+       id="path1288"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.062766,177.04139 0.960756,1.40013 -0.569939,-1.79086 z"
+       id="path1290"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.388445,178.58805 0.635077,-0.14653 0.700211,0.66751 -0.651358,0.73262 z"
+       id="path1294"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 99.023522,178.44152 -1.237584,-1.69318 -0.293112,0.0326 0.895619,1.80715 z"
+       id="path1296"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.492826,176.7809 0.211692,-1.02567 0.08142,0.99311 z"
+       id="path1298"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.388445,178.58805 -0.863051,-0.928 -0.4071,0.0977 0.928188,1.05824 z"
+       id="path1300"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 98.046482,178.81598 1.025893,1.02567 -0.68393,-1.2536 z"
+       id="path1302"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.15875;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 97.118294,177.75774 -0.227976,-1.05824 0.635076,0.96055 z"
+       id="path1304"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccc"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.13229166;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 88.892408,192.06401 0.921162,0.0921 -0.460581,-1.28936 z"
+       id="path1535"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:0.16500001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 95.55506,184.62815 1.937764,3.2724 1.954077,0.55354 z"
+       id="path1289"
+       inkscape:connector-curvature="0"
+       inkscape:export-xdpi="26.503077"
+       inkscape:export-ydpi="26.503077"
+       inkscape:export-filename="/srv/shiny-server/assets/moose.png" />
+  </g>
+</svg>
