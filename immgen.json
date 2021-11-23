@@ -1,0 +1,9 @@
+{
+  "name": "Immgen",
+  "author": "Mark Robinson",
+  "license": "",
+  "vector": "vector/immgen.svg",
+  "description": "Immgen app http://10.197.211.94/app_immgen/",
+  "raster": "hexagons/immgen.png",
+  "filename": "meta/immgen.json"
+}
