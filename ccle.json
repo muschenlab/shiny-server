@@ -1,0 +1,9 @@
+{
+  "name": "CCLE",
+  "author": "Mark Robinson",
+  "license": "",
+  "vector": "vector/ccle.svg",
+  "description": "CCLE app http://10.197.211.94/app_ccle/",
+  "raster": "hexagons/ccle.png",
+  "filename": "meta/ccle.json"
+}
