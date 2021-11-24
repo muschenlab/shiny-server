@@ -11,7 +11,7 @@ options(stringsAsFactors = F)
 ################################# Setup #######################################
 
 # load data
-es <- readRDS("/poolio/expr_sets/es/MILE_leukemias_ES.rds")
+es <- readRDS("/srv/shiny-server/app_mile/mile_data/MILE_leukemias_ES.rds")
 
 # load plot templates
 dendro_templ <- readRDS("MILE_dendrogram_plot_outline.rds")
