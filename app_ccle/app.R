@@ -17,7 +17,7 @@ options(stringsAsFactors = F)
 reactvals <- reactiveValues(si = NULL)
 
 # load CCLE data
-ccledat <- readRDS("/poolio/public_data/CCLE/CCLE_MAE_processed.2019-10-27.rds")
+ccledat <- readRDS("/srv/shiny-server/app_ccle/ccle_data/CCLE_MAE_processed.2019-10-27.rds")
 
 # just make a summary table for the assay info
 assay_info <- data.frame("Assay Type" = names(ccledat$mae),
