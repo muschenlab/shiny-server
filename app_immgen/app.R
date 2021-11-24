@@ -15,13 +15,13 @@ options(stringsAsFactors = F)
 reactvals <- reactiveValues(sel_samples = NULL)
 
 # load data
-counts_se <- readRDS("/poolio/public_data/Immgen/data/Immgen_RNAseq_norm_counts_SE.2020-01-10.rds")
+counts_se <- readRDS("/srv/shiny-server/app_immgen/immgen_data/Immgen_RNAseq_norm_counts_SE.2020-01-10.rds")
 
 # load plot template
-plot_templ <- readRDS("/poolio/public_data/Immgen/img/Immgen_simple_lineage_ggplot_obj.rds")
+plot_templ <- readRDS("/srv/shiny-server/app_immgen/immgen_data/Immgen_simple_lineage_ggplot_obj.rds")
 
 # load celltype info
-cell_info <- read.csv("/poolio/public_data/Immgen/Immgen_celltypes.csv")
+cell_info <- read.csv("/srv/shiny-server/app_immgen/immgen_data/Immgen_celltypes.csv")
 
 # pre-process counts to average by group
 groups <- plot_templ$data$names
