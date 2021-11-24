@@ -38,7 +38,7 @@ get_density <- function(x, y, ...) {
 }
 
 # load internal datasets
-internal_files <- list.files("/poolio/internal_data/scWB", pattern = ".xlsx", full.names = T)
+internal_files <- list.files("/srv/shiny-server/app_scwb/scwb_data/", pattern = ".xlsx", full.names = T)
 names(internal_files) <- sub("^.+/(.+)\\.xlsx", "\\1", internal_files)
 
 #################################### UI #######################################
