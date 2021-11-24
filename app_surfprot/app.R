@@ -8,7 +8,7 @@ options(stringsAsFactors = F)
 # test list: YLAT1 LAT3 S38A2  YLAT2 LAT1 S38A1 CTR1  4F2  Slc1a5 Slc1a4 Epha2 Epha5
 
 # load data
-dat <- readRDS("/poolio/internal_data/surf_proteomics/GD_surfprot_BCR_ABL1_4h.2019-11-08.rds")
+dat <- readRDS("/srv/shiny-server/app_surfprot/surfprot_data/GD_surfprot_BCR_ABL1_4h.2019-11-08.rds")
 dat <- as.data.frame(dat)
 
 # set stored values
