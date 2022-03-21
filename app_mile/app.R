@@ -6,12 +6,11 @@ library(shinythemes)
 library(officer)
 library(rvg)
 library(DT)
-options(stringsAsFactors = F)
 
 ################################# Setup #######################################
 
 # load data
-es <- readRDS("/srv/shiny-server/app_mile/mile_data/MILE_leukemias_ES.rds")
+es <- readRDS("mile_data/MILE_leukemias_ES.rds")
 
 # load plot templates
 dendro_templ <- readRDS("MILE_dendrogram_plot_outline.rds")
@@ -83,7 +82,9 @@ ui <- fluidPage(
                  tags$h3("Expression Summary:"),
                  DT::DTOutput('expr_summary_dt')),
         tabPanel("Expression Data", width = "100%",
-                 DT::DTOutput('expr_level_dt'))
+                 DT::DTOutput('expr_level_dt'),
+	         div(downloadButton("dl_expr_xls", label = "XLSX",
+                                    style = "font-size:12px;height:30px;padding:5px;")))
     )
 )
 
@@ -358,29 +359,31 @@ server <- function(input, output) {
     
     # expression data table output
     output$expr_level_dt <- DT::renderDT({
-      paste0(get_features()$gene_symbol)
-      expr <- get_expr_level()
-      DT::datatable(as.data.frame(get_expr_dat()), 
+      genes <- unique(get_features()$gene_symbol)
+      expr <- get_expr_dat()
+      DT::datatable(as.data.frame(expr), 
                     escape = F, 
                     rownames = F,
-                    caption = paste0("Expression levels: ", get_gene_name()),
+                    caption = paste0("Expression levels:", paste(genes, collapse = " ")),
                     colnames = Hmisc::capitalize(gsub("_", " ", colnames(expr))),
                     editable = "cell",
                     extensions = 'Buttons',
                     options = list(dom = 'frtipB',
-                                   buttons = list('pageLength',
-                                        list(extend = 'csv',
-                                             filename = paste0("MILE_expression_levels_", 
-                                                               genes, ".csv"),
-                                             title = NULL),
-                                        list(extend = 'excel',
-                                             filename = paste0("MILE_expression_levels_", 
-                                                               genes, ".xlsx"),
-                                             title = NULL)),
+                                   buttons = list('pageLength'),
                                    pagelength = 10,
                                    lengthMenu = list(c(10, 25, 100, -1),
                                                      c('10','25','100','All')))) %>%
         DT::formatRound(c("expr"), 3)
+    })
+
+    # download expr info
+    output$dl_expr_xls <- downloadHandler(
+       	filename = function() {
+ 	genes <- unique(get_features()$gene_symbol)
+        paste0("MILE_", paste(genes, collapse="_"), "_expr_levels.xlsx")
+    },
+    content = function(file) {
+      	writexl::write_xlsx(get_expr_dat(), path=file)
     })
 }
 

@@ -1,7 +1,15 @@
-#Processed Hosted Data
-#Processed data vital for apps
-
-
+# general
+.DS_Store
 
 #Processed hosted data
 data/H3K27ac/*ChIPseq.bw
+
+#App Necessary data
+app_ccle/ccle_data/
+app_expr/expr_data/
+app_expr/expr_dump.sql
+app_immgen/immgen_data/
+app_mile/mile_data/
+app_scwb/scwb_data/
+app_surfprot/surfprot_data/
+app_prognosis/prognosis_data/

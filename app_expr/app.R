@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(fgsea)
-library(MERtools)
+library(merTools)
 library(shinythemes)
 library(shinycssloaders)
 library(shinyWidgets)
@@ -26,7 +26,8 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 
 # db info
 dbname <- "expr"
-cnf <- list.files("/poolio/db", pattern = paste0(dbname, ".cnf"), full.names = T)
+cnf <- list.files("/srv/shiny-server/app_expr/expr_data", pattern = paste0(dbname, ".cnf$"), full.names = T)
+print(cnf)
 
 # get sample info
 db <- dbConnect(RMariaDB::MariaDB(), default.file = cnf, group = dbname)
@@ -96,10 +97,11 @@ ui <- fluidPage(
                br(), br(),
                tags$h3("Expression summary:"),
                DT::dataTableOutput("expr_summary_dt"),
-               div(style="display:inline-block;",
-                   actionButton("expand_levels", "Expand",
-                            style = "font-size:12px;height:30px;padding:5px;")),
-               div(style="display:inline-block;",
+               #div(style="display:inline-block;",
+               #    actionButton("expand_levels", "Expand",
+               #             style = "font-size:12px;height:30px;padding:5px;")),
+	       #div(style = "font-size:12px", uiOutput("group_ranks")),
+	       div(style="display:inline-block;",
                    actionButton("reorder_levels", "Reorder",
                                 style = "font-size:12px;height:30px;padding:5px;")),
                br(), br(),
@@ -168,6 +170,7 @@ server <- function(input, output) {
    get_sel_si <- reactive({
       si_summary <- reactvals$si_summary
       si_summary <- si_summary[input$samples_dt_rows_selected,]
+      reactvals$group_levels <- unique(sample_info$group_name)
       apply(si_summary, 1, function(x) {
          sample_info[which(sample_info$tissue_type == x["tissue_type"] &
                               sample_info$disease_state == x["disease_state"] &
@@ -279,7 +282,19 @@ server <- function(input, output) {
                     callback = JS('table.page(3).draw(false);'),
                     caption = "Select columns or edit cells to change grouping and labels")
    })
-   
+  
+   # group ranking
+   output$group_ranks <- renderUI({
+     if ((input$rank_toggle %% 2) != 0) {
+       rank_list(text = "Drag groups to order",
+                input_id = "group_rankings",
+                labels = unique(reactvals$group_levels))
+     } else return(NULL)
+   })
+   observeEvent(input$group_rankings, {
+     reactvals$group_levels <- as.character(unique(input$group_rankings))
+   })
+
    # update grouping column and names
    # expr_summary_dt_proxy <- DT::dataTableProxy("expr_summary_dt")
    # observeEvent(input$expr_summary_dt_cell_edit, {

@@ -18,14 +18,14 @@ options(stringsAsFactors = F)
 #                                   columns = c("ALIAS","ENTREZID",
 #                                               "ENSEMBLID","GENENAME"))
 # saveRDS(aliases, "/poolio/gene_info_hs.rds")
-genes <- readRDS("/poolio/gene_info_hs.rds")
+genes <- readRDS("prognosis_data/gene_info_hs.rds")
 
 # tmp until i sort out db
 # datasets <- list.files("/poolio/public_data/GEO_expr/rds", pattern = '.rds', full.names = T)
 # names(datasets) <- sub("^.+/(.+)\\.[0-9\\-]+\\.rds", "\\1", datasets)
 # datasets <- lapply(datasets, function(x) readRDS(x))
 # saveRDS(datasets, "/poolio/public_data/GEO_expr/rds/combined_datsets.2019-10-24.rds")
-datasets <- readRDS("/poolio/public_data/GEO_expr/rds/comb_temp.rds")
+datasets <- readRDS("prognosis_data/comb_temp.rds")
 pmids <- sapply(datasets, function(x) {
   tmp <- experimentData(x)@pubMedIds
   tmp <- unlist(strsplit(tmp, split = "\n"))
@@ -108,19 +108,25 @@ ui <- function(request) {
                    br(),
                    tableOutput('expr_summary_dt'),
                    br(),
-                   DT::DTOutput('expr_values_dt')),
+                   DT::DTOutput('expr_values_dt'),
+		   div(downloadButton("dl_expr_xls", label = "Excel",
+				  style = "font-size:12px;height:30px;padding:5px;"))),
           tabPanel("Survival",
                    plotOutput("survplot"),
                    div(style="display:inline-block", 
-                       downloadButton("dl_surv_ppt", label = "Download PPT")),
+                       downloadButton("dl_surv_ppt", label = "PPT",
+				      style = "font-size:12px;height:30px;padding:5px;")),
                    div(style="display:inline-block", 
-                       downloadButton("dl_surv_png", label = "Download PNG"))),
+                       downloadButton("dl_surv_png", label = "PNG",
+				      style = "font-size:12px;height:30px;padding:5px;"))),
           tabPanel("Relapse",
                    plotOutput("relapseplot"),
                    div(style="display:inline-block", 
-                       downloadButton("dl_relapse_ppt", label = "Download PPT")),
+                       downloadButton("dl_relapse_ppt", label = "PPT",
+				      style = "font-size:12px;height:30px;padding:5px;")),
                    div(style="display:inline-block", 
-                       downloadButton("dl_relapse_png", label = "Download PNG")))
+                       downloadButton("dl_relapse_png", label = "PNG",
+				      style = "font-size:12px;height:30px;padding:5px;")))
         )
       )
     )
@@ -495,6 +501,31 @@ server <- function(input, output) {
   output$relapseplot <- renderPlot({
     gen_relapse_plot()
   })
+
+  # download expr + surv data
+  output$dl_expr_xls <- downloadHandler(
+    filename = function() {
+      paste0(get_gene(), "_surv_", Sys.Date(), ".xlsx")
+    },
+    content = function(file) {
+      exprdat <- get_osdat()
+      gene <- get_gene()
+      tabdat <- lapply(exprdat, function(x) {
+        tab <- x[[1]][,c(6,1:3)]
+        tmp <- lapply(x, function(y) {
+          colnames(y)[4] <- paste0("Expr category: ", unique(y[,5]))
+          return(y[, 4, drop = F])
+        }) %>% bind_cols()
+        cbind(tab, tmp)
+      }) %>% bind_rows()
+      tabdat$time <- round(tabdat$time,2)
+      tabdat$exprlevel <- round(tabdat$exprlevel,2)
+      tabdat$events <- factor(tabdat$events, levels = c(1,0), labels = c("Dead","Alive"))
+      colnames(tabdat)[c(1:4)] <- c("Dataset", "Follow up time",
+                                    "Status", paste0(gene," expr level"))
+      writexl::write_xlsx(tabdat, path=file)
+    }
+  )
 }
 
 ############### run ############### 
