@@ -120,7 +120,7 @@ ui <- fluidPage(
 )
 
 ################################### Server ####################################
-server <- function(input, output) {
+server <- function(input, output, session) {
    
    # icon
    output$icon <- renderImage(list(src = "../hexagons/expr.png",

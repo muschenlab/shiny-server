@@ -79,7 +79,7 @@ ui <- fluidPage(
 )
 
 ################### server ########################
-server <- function(input, output) {
+server <- function(input, output, session) {
    
    # icon
    output$icon <- renderImage(list(src = "www/moose.png",
