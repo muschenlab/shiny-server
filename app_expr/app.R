@@ -1,7 +1,6 @@
 library(shiny)
 library(tidyverse)
 library(fgsea)
-library(merTools)
 library(shinythemes)
 library(shinycssloaders)
 library(shinyWidgets)
@@ -26,7 +25,7 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 
 # db info
 dbname <- "expr"
-cnf <- list.files("/srv/shiny-server/app_expr/expr_data", pattern = paste0(dbname, ".cnf$"), full.names = T)
+cnf <- list.files("expr_data", pattern = paste0(dbname, ".cnf$"), full.names = T)
 print(cnf)
 
 # get sample info
@@ -59,7 +58,9 @@ dbDisconnect(db)
 
 # set reactive values
 reactvals <- reactiveValues(selgenes = c("PAX5"),
-                            si_summary = si_summary)
+                            si_summary = si_summary,
+                            grouping_col = NULL,
+                            group_levels = NULL)
 
 ##################################### UI ######################################
 
