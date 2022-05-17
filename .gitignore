@@ -5,10 +5,13 @@
 .RData
 .Ruserdata
 
-#Processed hosted data
+# node
+node_modules
+
+# processed hosted data
 data/H3K27ac/*ChIPseq.bw
 
-#App Necessary data
+# app data
 app_ccle/ccle_data/
 app_expr/expr_data/
 app_expr/expr_dump.sql
