@@ -12,6 +12,10 @@ library(randomcoloR)
 library(shinycssloaders)
 library(shinythemes)
 options(stringsAsFactors = F)
+library(reactlog)
+
+#reactlog
+options(shiny.reactlog=TRUE)
 
 # initialise reactvals
 reactvals <- reactiveValues(si = NULL)

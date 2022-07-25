@@ -1,4 +1,7 @@
 library(shiny)
+library(reactlog)
+
+options(shiny.reactlog=TRUE)
 
 dt <- mtcars
 
