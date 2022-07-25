@@ -12,12 +12,16 @@ library(randomcoloR)
 library(shinycssloaders)
 library(shinythemes)
 options(stringsAsFactors = F)
+library(reactlog)
+
+#reactlog
+options(shiny.reactlog=TRUE)
 
 # initialise reactvals
 reactvals <- reactiveValues(si = NULL)
 
 # load CCLE data
-ccledat <- readRDS("/srv/shiny-server/app_ccle/ccle_data/CCLE_MAE_processed.2019-10-27.rds")
+ccledat <- readRDS("ccle_data/CCLE_MAE_processed.2019-10-27.rds")
 
 # just make a summary table for the assay info
 assay_info <- data.frame("Assay Type" = names(ccledat$mae),
@@ -92,7 +96,7 @@ ui <- fluidPage(
 ) 
 
 ############### server ############### 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # icon
   output$icon <- renderImage(list(src = "../hexagons/ccle.png",

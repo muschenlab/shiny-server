@@ -25,7 +25,7 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 
 # db info
 dbname <- "expr"
-cnf <- list.files("/srv/shiny-server/app_expr/expr_data", pattern = paste0(dbname, ".cnf$"), full.names = T)
+cnf <- list.files("expr_data", pattern = paste0(dbname, ".cnf$"), full.names = T)
 print(cnf)
 
 # get sample info
@@ -58,7 +58,9 @@ dbDisconnect(db)
 
 # set reactive values
 reactvals <- reactiveValues(selgenes = c("PAX5"),
-                            si_summary = si_summary)
+                            si_summary = si_summary,
+                            grouping_col = NULL,
+                            group_levels = NULL)
 
 ##################################### UI ######################################
 
@@ -93,7 +95,7 @@ ui <- fluidPage(
                                   style = "font-size:12px;height:30px;padding:5px;"),
                    downloadButton("dl_expr_plot_png", label = "PNG",
                                   style = "font-size:12px;height:30px;padding:5px;"),
-                   downloadButton("dl_expr_dat_xls", label = "Data XLSX",
+                   downloadButton("dl_expr_dat_xls", label = "XLSX",
                                   style = "font-size:12px;height:30px;padding:5px;")),
                br(), br(),
                tags$h3("Expression summary:"),
@@ -102,9 +104,9 @@ ui <- fluidPage(
                #    actionButton("expand_levels", "Expand",
                #             style = "font-size:12px;height:30px;padding:5px;")),
 	       #div(style = "font-size:12px", uiOutput("group_ranks")),
-	       div(style="display:inline-block;",
-                   actionButton("reorder_levels", "Reorder",
-                                style = "font-size:12px;height:30px;padding:5px;")),
+	       #div(style="display:inline-block;",
+               #    actionButton("reorder_levels", "Reorder",
+               #                 style = "font-size:12px;height:30px;padding:5px;")),
                br(), br(),
                tags$h3("Sample info:"),
                DT::dataTableOutput("samples_dt"),
@@ -119,7 +121,7 @@ ui <- fluidPage(
 )
 
 ################################### Server ####################################
-server <- function(input, output) {
+server <- function(input, output, session) {
    
    # icon
    output$icon <- renderImage(list(src = "../hexagons/expr.png",
@@ -378,14 +380,14 @@ server <- function(input, output) {
    get_dims <- reactive({
       exprdat <- reactvals$exprdat
       ncond <- length(unique(exprdat$group_label))
-      width <- min(70*ncond, 1000)
+      width <- max(100, min(70*ncond, 1000))
       list(w = width, h = 350)
    })
    output$expr_plot_ui <- renderUI({
       dims <- get_dims()
       plotOutput("expr_plot", height = dims$h, width = dims$w)
    })
-   
+
    # download data as xlsx
    output$dl_expr_dat_xls <- downloadHandler(
       filename = function() {
@@ -396,7 +398,7 @@ server <- function(input, output) {
       content = function(file) {
          writexl::write_xlsx(reactvals$exprdat, path=file)
    })
-   
+
    # download expr plot as png
    output$dl_expr_plot_png <- downloadHandler(
       filename = function() {
@@ -415,7 +417,7 @@ server <- function(input, output) {
                 height = dims$h/3, width = dims$w/3)
       }
    )
-   
+
    # download expr plot as ppt
    output$dl_expr_plot_ppt <- downloadHandler(
       filename = function() {
@@ -433,7 +435,7 @@ server <- function(input, output) {
          dims <- get_dims()
          file_pptx <- tempfile(fileext = ".pptx")
          gen_pptx(plot, file_pptx,
-                  height = (dims$h/3)*0.039, 
+                  height = (dims$h/3)*0.039,
                   width = (dims$w/3)*0.039)
          file.rename(from = file_pptx, to = file)
       }
