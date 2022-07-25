@@ -13,8 +13,8 @@ library(DT)
 es <- readRDS("mile_data/MILE_leukemias_ES.rds")
 
 # load plot templates
-dendro_templ <- readRDS("MILE_dendrogram_plot_outline.rds")
-lineage_templ <- readRDS("MILE_lineage_plot_outline.rds")
+dendro_templ <- readRDS("mile_data/MILE_dendrogram_plot_outline.rds")
+lineage_templ <- readRDS("mile_data/MILE_lineage_plot_outline.rds")
 
 # pre-process counts to average by group  
 groups <- unique(es$group); names(groups) <- unique(es$group)
@@ -378,12 +378,12 @@ server <- function(input, output) {
 
     # download expr info
     output$dl_expr_xls <- downloadHandler(
-       	filename = function() {
- 	genes <- unique(get_features()$gene_symbol)
+      filename = function() {
+        genes <- unique(get_features()$gene_symbol)
         paste0("MILE_", paste(genes, collapse="_"), "_expr_levels.xlsx")
-    },
-    content = function(file) {
-      	writexl::write_xlsx(get_expr_dat(), path=file)
+      },
+      content = function(file) {
+        writexl::write_xlsx(get_expr_dat(), path=file)
     })
 }
 

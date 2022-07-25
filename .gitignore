@@ -1,5 +1,8 @@
 # general
 .DS_Store
+.Rproj.user
+.Rhistory
+.Rapp
 
 #Processed hosted data
 data/H3K27ac/*ChIPseq.bw

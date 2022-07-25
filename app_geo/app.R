@@ -13,7 +13,7 @@ library(GEOquery)
 library(colourpicker)
 library(rvg)
 library(officer)
-options(stringsAsFactors = F)
+library(plotly)
 
 ################################### Setup #####################################
 
@@ -69,14 +69,35 @@ ui <- fluidPage(
     mainPanel(width = 10, 
               tabsetPanel(
                 tabPanel("Experiment Info",
-                         htmlOutput("abstract_title"),
-                         htmlOutput("abstract_text")
+                         tags$h5(paste0("Experiment information will be displayed here after fetching - ",
+                                        "the information provided is determined by the authors and is non-standardised, ",
+                                        "it is therefore necessary to select appropariate columns to group/name",
+                                        "samples and genes by using the tables below."),
+                         tags$h3("Experiment summary:"),
+                         htmlOutput("abstract_text"),
+                         br(), br(),
+                         tags$h3("Feature info:"),
+                         tags$h5("Select the best column(s) for gene names"),
+                         div(DT::dataTableOutput("fdat_cols_dt"),
+                             style = "font-size:90%"),
+                         tags$h3("Sample info:"),
+                         tags$h5("Select the best column(s) for grouping samples"),
+                         div(DT::dataTableOutput("pdat_cols_dt"),
+                             style = "font-size:90%")
+                ),
+                tabPanel("QC",
+                         uiOutput("choose_pc1"),
+                         uiOutput("choose_pc2"),
+                         plotlyOutput("pca"),
+                         verbatimTextOutput("pca_hover")
                 ),
                 tabPanel("Expression", align = "center",
                          uiOutput("distro_plot_ele"),
                          uiOutput("expr_plot_ui") %>%
                            withSpinner(color="pink"),
-                         uiOutput("color_choices"),
+                         fluidRow(uiOutput("color_choice_1", style="font-size:12px;width:50%;padding:0px;"),
+                                  uiOutput("color_choice_2", style="font-size:12px;width:50%;padding:0px;")),
+                         br(),br(),
                          div(style="display:inline-block;",
                              actionButton("log_expr", "Log",
                                           style = "font-size:12px;height:30px;padding:5px;"),
@@ -84,7 +105,7 @@ ui <- fluidPage(
                                           style = "font-size:12px;height:30px;padding:5px;"),
                              actionButton("normalize", "Quantile normalize",
                                           style = "font-size:12px;height:30px;padding:5px;")),
-                         br(),
+                         br(),br(),
                          div(style="display:inline-block;",
                              downloadButton("dl_expr_plot_ppt", label = "PPT",
                                             style = "font-size:12px;height:30px;padding:5px;"),
@@ -100,19 +121,19 @@ ui <- fluidPage(
                          div(style = "font-size:12px", uiOutput("group_ranks")),
                          br(), br(),
                          tags$h3("Feature info:"),
-                         div(DT::dataTableOutput("fdat_dt"),
+                         div(DT::dataTableOutput("fdat_rows_dt"),
                              style = "font-size:90%"),
                          div(style="display:inline-block;",
-                             checkboxInput("fdat_dt_select", "Add/remove all current genes", value = T),
+                             checkboxInput("fdat_rows_dt_select", "Add/remove all current genes", value = T),
                              h5(textOutput("n_features"))),
                          tags$h3("Sample info:"),
                          tags$h5("Select rows to change samples included and click columns names in footer to choose columns to group by."),
-                         div(DT::dataTableOutput("pdat_dt"),
+                         div(DT::dataTableOutput("pdat_rows_dt"),
                              style = "font-size:90%"),
                          div(style="display:inline-block;",
-                             checkboxInput("pdat_dt_select", "Add/remove all current samples"),
+                             checkboxInput("pdat_rows_dt_select", "Add/remove all current samples"),
                              h5(textOutput("n_samples")))
-                )#,
+                )
                 # tabPanel("Clustering",
                 #          radioGroupButtons("clust_plot_type", "Plot Type:",
                 #                            choices = list("PCA" = "PCA",
@@ -122,7 +143,7 @@ ui <- fluidPage(
                 #                            width = '25%',
                 #                            status = "default",
                 #                            selected = "pca"),
-                #          uiOutput("clust_plot_ui") %>% 
+                #          uiOutput("clust_plot_ui") %>%
                 #            withSpinner(color="pink"),
                 #          div(style="display:inline-block;",
                 #              downloadButton("dl_clust_ppt", label = "PPT",
@@ -133,13 +154,7 @@ ui <- fluidPage(
                 #          rank_list(text = "Drag groups to order",
                 #            labels = list("one","two","three"),
                 #            input_id = "rank_groups")
-                # ),
-                # tabPanel("DE",
-                #          uiOutput("choose_pc1"),
-                #          uiOutput("choose_pc2"),
-                #          plotlyOutput("pca"),
-                #          verbatimTextOutput("pca_hover")
-                # ),
+                # )#,
                 # tabPanel("GSEA",
                 #          uiOutput("choose_numer"),
                 #          uiOutput("choose_denom"),
@@ -159,10 +174,10 @@ ui <- fluidPage(
                 #                      c("Homo sapiens" = "Hs",
                 #                        "Mus musculus" = "Mm")),
                 #          plotOutput("gsea_plot"))
-              )
+                )
     )
   )
-)
+))
 
 
 ################################### Server ####################################
@@ -175,7 +190,6 @@ server <- function(input, output) {
   
   # get GSE data
   get_gse <- observeEvent(input$go_button, {
-    # reactvals$gse <- NULL
     gse <- input$gse
     if (is.null(gse) | gse == "") return(NULL)
     withProgress(message = 'Fetching data from GEO', value = .3, { 
@@ -218,82 +232,88 @@ server <- function(input, output) {
   })
   output$abstract_text <- renderUI({
     es <- reactvals$es
-    print(es)
     if (is_empty(es)) return(NULL)
     tags$h5(experimentData(es)@abstract)
   })
   
-  # pheno table
-  output$pdat_dt <- DT::renderDataTable({
+  # format es
+  get_es <- reactive({
     es <- reactvals$es
+    useless_cols <- apply(pData(es), 2, function(x) length(unique(x)) == 1)
+    useless_cols <- (useless_cols | colnames(pData(es)) %in% c("supplementary_file","data_row_count"))
+    pData(es) <- pData(es)[,!useless_cols]
+    useless_cols <- apply(fData(es), 2, function(x) length(unique(x)) == 1)
+    fData(es) <- fData(es)[,!useless_cols]
+    reactvals$es <- es
+    return(es)
+  })
+  
+  # pheno table for grouping col selection
+  output$pdat_cols_dt <- DT::renderDataTable({
+    es <- get_es()
     if (is_empty(es)) return(NULL)
     pdat <- pData(es)
-    useless_cols <- apply(pdat, 2, function(x) length(unique(x)) == 1)
-    pdat <- pdat[,!useless_cols]
-    useless_cols <- colnames(pdat) %in% c("supplementary_file","data_row_count")
-    pdat <- pdat[,!useless_cols]
-    pData(reactvals$es) <- pdat
     selected <- grep("condition", colnames(pdat), ignore.case = T)-1
     selected <- ifelse(is_empty(selected), 1, selected[[1]])
     DT::datatable(
       data = pdat, 
       rownames = F,
       colnames = Hmisc::capitalize(gsub("[_\\.]", " ", colnames(pdat))),
-      selection = list(mode = 'multiple', target = "row+column", 
-                       selected = list(rows = 2:nrow(pdat), cols = selected)),
-      # options = list(columnDefs = list(list(
-      #   processing = F,
-      #   targets = 0:(ncol(pdat)-1),
-      #   render = JS(
-      #     "function(data, type, row, meta) {",
-      #     "return type === 'display' && data.length > 20 ?",
-      #     "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
-      #     "}")
-      # ))),
-      # callback = JS('table.page(3).draw(false);')
+      selection = list(mode = 'multiple', target = "column", 
+                       selected = selected)
     )
   })
   
-  # handle row selection/sample filtering
-  pdat_dt_proxy <- DT::dataTableProxy("pdat_dt")
-  observeEvent(input$pdat_dt_select, {
-    if (isTRUE(input$pdat_dt_select)) {
-      selected <- input$pdat_dt_rows_selected
-      current <- input$pdat_dt_rows_all
-      combined <- unique(c(selected, current))
-      nsamples <- length(combined)
-      DT::selectRows(pdat_dt_proxy, combined)
-    } else {
-      selected <- input$pdat_dt_rows_selected
-      current <- input$pdat_dt_rows_all
-      filtered <- selected[!selected %in% current]
-      nsamples <- length(filtered)
-      DT::selectRows(pdat_dt_proxy, NULL)
-      DT::selectRows(pdat_dt_proxy, filtered)
-    }
-    output$n_samples <- renderText(paste0("Total selected samples: ", nsamples))
-  })
-  observeEvent(input$pdat_dt_rows_selected, {
-    nsamples <- ncol(reactvals$es[, input$pdat_dt_rows_selected])
-    output$n_samples <- renderText(paste0("Total selected samples: ", nsamples))
+  # pheno table for row/sample selection
+  output$pdat_rows_dt <- DT::renderDataTable({
+    es <- reactvals$es
+    if (is_empty(es)) return(NULL)
+    pdat <- pData(es)
+    DT::datatable(
+      data = pdat, 
+      rownames = F,
+      colnames = Hmisc::capitalize(gsub("[_\\.]", " ", colnames(pdat))),
+      selection = list(mode = 'multiple', target = "row", 
+                       selected = 1:nrow(pdat))
+    )
   })
   
-  # feature info
-  output$fdat_dt <- DT::renderDataTable({
+  # features table for gene name col selection
+  output$fdat_cols_dt <- DT::renderDataTable({
     es <- reactvals$es
     if (is.null(es)) return(NULL)
     fdat <- fData(es)
-    useless_cols <- apply(fdat, 2, function(x) length(unique(x)) == 1)
-    fdat <- fdat[,!useless_cols]
-    selected <- grep("gene|symbol", colnames(fdat), ignore.case = T)-1
+    selected <- grep("symbol|gene", colnames(fdat), ignore.case = T)-1
     selected <- ifelse(is_empty(selected), 1, selected)
-    fData(reactvals$es) <- fdat
     DT::datatable(
       data = fdat, 
       rownames = F,
       colnames = Hmisc::capitalize(gsub("[_\\.]", " ", colnames(fdat))),
-      selection = list(mode = 'multiple', target = "row+column", 
-                       selected = list(rows = c(1:nrow(fdat)), cols = selected)),
+      selection = list(mode = 'multiple', target = "column", 
+                       selected = selected),
+      options = list(columnDefs = list(list(
+        targets = 0:(ncol(fdat)-1),
+        render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 20 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+          "}")
+      ))),
+      callback = JS('table.page(3).draw(false);')
+    )
+  })
+  
+  # feature info table for feature/row selection
+  output$fdat_rows_dt <- DT::renderDataTable({
+    es <- reactvals$es
+    if (is.null(es)) return(NULL)
+    fdat <- fData(es)
+    DT::datatable(
+      data = fdat, 
+      rownames = F,
+      colnames = Hmisc::capitalize(gsub("[_\\.]", " ", colnames(fdat))),
+      selection = list(mode = 'multiple', target = "row", 
+                       selected = list(rows = 1)),
       options = list(columnDefs = list(list(
         targets = 0:(ncol(fdat)-1),
         render = JS(
@@ -306,48 +326,78 @@ server <- function(input, output) {
       )
   })
   
-  # handle row selection from features table
-  fdat_dt_proxy <- DT::dataTableProxy("fdat_dt")
-  observeEvent(input$fdat_dt_select, {
-    if (isTRUE(input$fdat_dt_select)) {
-      selected <- input$fdat_dt_rows_selected
-      current <- input$fdat_dt_rows_all
+  # handle row selection/sample filtering
+  pdat_rows_dt_proxy <- DT::dataTableProxy("pdat_rows_dt")
+  observeEvent(input$pdat_rows_dt_select, {
+    if (isTRUE(input$pdat_rows_dt_select)) {
+      selected <- input$pdat_rows_dt_rows_selected
+      current <- input$pdat_rows_dt_rows_all
       combined <- unique(c(selected, current))
       nsamples <- length(combined)
-      DT::selectRows(fdat_dt_proxy, combined)
+      DT::selectRows(pdat_rows_dt_proxy, combined)
     } else {
-      selected <- input$fdat_dt_rows_selected
-      current <- input$fdat_dt_rows_all
+      selected <- input$pdat_rows_dt_rows_selected
+      current <- input$pdat_rows_dt_rows_all
       filtered <- selected[!selected %in% current]
       nsamples <- length(filtered)
-      DT::selectRows(fdat_dt_proxy, NULL)
-      DT::selectRows(fdat_dt_proxy, filtered)
+      DT::selectRows(pdat_rows_dt_proxy, NULL)
+      DT::selectRows(pdat_rows_dt_proxy, filtered)
     }
-    output$n_features <- renderText(paste0("Total selected samples: ", nfeatures))
+    output$n_samples <- renderText(paste0("Total selected samples: ", nsamples))
   })
-  observeEvent(input$fdat_dt_rows_selected, {
-    nfeatures <- nrow(reactvals$es[input$fdat_dt_rows_selected, ])
-    output$n_features <- renderText(paste0("Total selected samples: ", nfeatures))
+  observeEvent(input$pdat_rows_dt_rows_selected, {
+    nsamples <- ncol(reactvals$es[, input$pdat_rows_dt_rows_selected])
+    output$n_samples <- renderText(paste0("Total selected samples: ", nsamples))
+  })
+  
+  # handle row selection from features table
+  fdat_rows_dt_proxy <- DT::dataTableProxy("fdat_rows_dt")
+  observeEvent(input$fdat_rows_dt_select, {
+    if (isTRUE(input$fdat_rows_dt_select)) {
+      selected <- input$fdat_rows_dt_rows_selected
+      current <- input$fdat_rows_dt_rows_all
+      combined <- unique(c(selected, current))
+      nfeatures <- length(combined)
+      DT::selectRows(fdat_rows_dt_proxy, combined)
+    } else {
+      selected <- input$fdat_rows_dt_rows_selected
+      current <- input$fdat_rows_dt_rows_all
+      filtered <- selected[!selected %in% current]
+      nfeatures <- length(filtered)
+      DT::selectRows(fdat_rows_dt_proxy, NULL)
+      DT::selectRows(fdat_rows_dt_proxy, filtered)
+    }
+    output$n_features <- renderText(paste0("Total selected features: ", nfeatures))
+  })
+  observeEvent(input$fdat_rows_dt_rows_selected, {
+    nfeatures <- nrow(reactvals$es[input$fdat_rows_dt_rows_selected, ])
+    if (is_empty(nfeatures)) nfeatures <- 0
+    output$n_features <- renderText(paste0("Total selected features: ", nfeatures))
   })
   
   # generate expr summary
   get_exprdat <- reactive({
     es <- reactvals$es
     if (is_empty(es)) return(NULL)
-    fdat_col_idx <- input$fdat_dt_columns_selected+1
-    if (length(fdat_col_idx) > 1) {
+    fdat_col_idx <- input$fdat_cols_dt_columns_selected+1
+    if (length(fdat_col_idx) < 1) {
+      return(NULL)
+    } else if (length(fdat_col_idx) > 1) {
       fData(es)$gene_name <- Reduce(paste, fData(es)[, fdat_col_idx])
     } else {
       fData(es)$gene_name <- fData(es)[, fdat_col_idx]
     }
-    pdat_col_idx <- input$pdat_dt_columns_selected+1
-    if (length(pdat_col_idx) > 1) {
+    pdat_col_idx <- input$pdat_cols_dt_columns_selected+1
+    if (length(pdat_col_idx) < 1) {
+      return(NULL)
+    } else if (length(pdat_col_idx) > 1) {
       pData(es)$group_name <- Reduce(paste, pData(es)[, pdat_col_idx])
     } else {
       pData(es)$group_name <- pData(es)[, pdat_col_idx]
     }
-    samples_idx <- input$pdat_dt_rows_selected
-    genes_idx <- input$fdat_dt_rows_selected
+    samples_idx <- input$pdat_rows_dt_rows_selected
+    genes_idx <- input$fdat_rows_dt_rows_selected
+    if (length(samples_idx) < 1 | length(genes_idx) < 1) { return(NULL) }
     es <- es[genes_idx, samples_idx]
     if (nrow(es) > 5000) {
       warning("Greater than 5000 features selected, just using subsample of 5000")
@@ -370,8 +420,7 @@ server <- function(input, output) {
   # summarise expression by group
   get_expr_summary <- reactive({  
     exprdat <- get_exprdat()
-    exprdat <- reactvals$exprdat
-    if (is_empty(exprdat)) return(NULL)
+    if (is_null(exprdat)) return(NULL)
     exprdat %>%
       group_by(gene_name, group_name) %>%
       summarise(n = n(),
@@ -391,7 +440,7 @@ server <- function(input, output) {
                   caption = "Select columns or edit cells to change ordering and labels")
   })
   
-  # handle label editting/grouo highlighting
+  # handle label editting/group highlighting
   summary_dt_proxy <- DT::dataTableProxy("expr_summary_dt")
   observeEvent(input$expr_summary_dt_cell_edit, {
     exprsum <- get_expr_summary()
@@ -462,6 +511,7 @@ server <- function(input, output) {
   # group ranking
   output$distro_plot_ele <- renderUI({
     exprdat <- reactvals$exprdat
+    if (is_empty(exprdat)) return(NULL) 
     if (length(unique(exprdat$gene_name)) == 1) {
       checkboxGroupButtons("plot_type", "Plot Element:",
                            choices = list("Violin" = "violin",
@@ -477,25 +527,25 @@ server <- function(input, output) {
   })
     
   # color elements
-  output$color_choices <- renderUI({
+  output$color_choice_1 <- renderUI({
     exprdat <- reactvals$exprdat
     selected_groups <- reactvals$selected_groups
-    if (length(unique(exprdat$gene_name)) == 1 & !is_empty(selected_groups)) {
-        div(style="display:inline-block;width:10%;", 
-            colourInput("col_sel","Color#1", value = "#999999",
-                         allowTransparent = TRUE),
-            colourInput("col_unsel","Color#2", value = "#3498dbff",
-                        allowTransparent = TRUE))
-    } else {
-      return(NULL)
-    }
+    if (is_empty(selected_groups)) return(NULL)
+    colourpicker::colourInput("col_sel", "Choose colors", value = "#88888888",
+                              allowTransparent = TRUE)
+  })
+  output$color_choice_2 <- renderUI({
+    exprdat <- reactvals$exprdat
+    selected_groups <- reactvals$selected_groups
+    if (is_empty(selected_groups)) return(NULL)
+    colourpicker::colourInput("col_unsel", NULL, value = "#3498dbff",
+                              allowTransparent = TRUE)
   })
   
   # generate distro plot
   plot_distribution <- reactive({
     exprdat <- reactvals$exprdat
     if (is_empty(exprdat)) return(NULL)
-    print(reactvals$selected_groups)
     exprdat$group_name <- factor(exprdat$group_name, levels = unique(reactvals$group_levels))
     plot_types <- input$plot_type
     if (is_empty(reactvals$selected_groups)) {
@@ -519,26 +569,25 @@ server <- function(input, output) {
     }
     if ("dotplot" %in% plot_types) {
       p <- p + geom_point(aes(color = group_col),
-                          alpha = .5,
                           position = position_dodge2(width = .5))
     }
     if ("violin" %in% plot_types) {
-      p <- p + geom_violin(aes(fill = group_col), alpha = .75)
+      p <- p + geom_violin(aes(fill = group_col))
     }
     if ("range" %in% plot_types) {
       p <- p + stat_summary(aes(color = group_col), 
-                            geom = "pointrange", alpha = 1, 
+                            geom = "pointrange",
                             fun.data = "mean_cl_boot")
     }
     if ("boxplot" %in% plot_types) {
       if ("dotplot" %in% plot_types & "violin" %in% plot_types) {
-        p <- p + geom_boxplot(aes(fill = group_col), width = 0.2, outlier.shape = NA)
+        p <- p + geom_boxplot(aes(fill = group_col), width = 0.15, outlier.shape = NA)
       } else if ("dotplot" %in% plot_types) {
-        p <- p + geom_boxplot(aes(fill = group_col), width = 0.8, outlier.shape = NA)
+        p <- p + geom_boxplot(aes(fill = group_col), width = 0.6, outlier.shape = NA)
       } else if ("violin" %in% plot_types) {
-        p <- p + geom_boxplot(aes(fill = group_col), width = 0.2)
+        p <- p + geom_boxplot(aes(fill = group_col), width = 0.15)
       } else {
-        p <- p + geom_boxplot(aes(fill = group_col), width = 0.8)
+        p <- p + geom_boxplot(aes(fill = group_col), width = 0.15)
       }
     }
     return(p)
@@ -558,7 +607,6 @@ server <- function(input, output) {
     exprdat <- spread(exprdat, "gene_name", "expr")
     genenames <-  colnames(exprdat)[c(4:5)]
     colnames(exprdat)[c(4:5)] <- c("geneA", "geneB")
-    print(head(exprdat))
     p <- ggplot(exprdat, aes(x = geneA, y = geneB, color = group_col)) +
       theme_bw(base_size = 18) + 
       xlab(paste0(genenames[1]," Expression [AU]")) +
@@ -570,10 +618,10 @@ server <- function(input, output) {
     return(p)
   })
   
-  # generate bivariate plot
+  # generate boxplot plot
   plot_qc_box <- reactive({
     exprdat <- reactvals$exprdat
-    if (is_empty(exprdat)) return(NULL)
+    if (is_empty(exprdat)) return(NULL) 
     p <- ggplot(exprdat, aes(x = group_name, y = expr)) +
       geom_boxplot() +
       theme_bw(base_size = 18) + 
@@ -589,7 +637,9 @@ server <- function(input, output) {
   # output distro plot
   sel_expr_plot <- reactive({
     exprsum <- get_expr_summary()
-    if (is_empty(exprsum)) return(NULL)
+    if (is_empty(exprsum)) {
+      validate("Please select features & samples")
+    }
     if (length(unique(exprsum$gene_name)) == 1) {
       plot_distribution()
     } else if (length(unique(exprsum$gene_name)) == 2) {
@@ -606,10 +656,11 @@ server <- function(input, output) {
   get_dims <- reactive({
     exprsum <- get_expr_summary()
     ncond <- length(unique(exprsum$group_name))
-    width <- min(70*ncond, 1000)
+    width <- max(c(120, min(c(70*ncond, 1000))))
     list(w = width, h = 350)
   })
   output$expr_plot_ui <- renderUI({
+    sel_expr_plot()
     dims <- get_dims()
     plotOutput("expr_plot", height = dims$h, width = dims$w)
   })
@@ -657,60 +708,52 @@ server <- function(input, output) {
     }
   )
   
-  # # perform pca
-  # get_pca_data <- reactive({
-  #   gpl_data <- get_gpl_data()
-  #   if (is.null(gpl_data)) {
-  #     return()
-  #   } else {
-  #     pca_data <- t(na.omit(exprs(gpl_data)))
-  #     pca_data <- as.data.frame(prcomp(pca_data, scale = T)$x)
-  #     cond_levels <- get_cond_levels()[[1]] 
-  #     pca_data$group <- as.character(cond_levels)
-  #     return(pca_data)
-  #   }
-  # })
+  # perform pca
+  get_pca_data <- reactive({
+    es <- reactvals$es
+    if (is_empty(es)) return(NULL)
+    pca_data <- t(na.omit(exprs(es)))
+    pca_data <- as.data.frame(prcomp(pca_data, scale = T)$x)
+    pca_data$group_name <- 
+    return(pca_data)
+  })
   
-  # # input ui for choosing PCs
-  # output$choose_pc1 <- renderUI({
-  #   pca_data <- get_pca_data()
-  #   if (is.null(pca_data)) {
-  #     tags$h5("Enter GSE ID, GPL ID and groupings info before attempting PCA.")
-  #   } else {
-  #     selectInput('pc1', 'First PC:', colnames(pca_data), "PC1")
-  #   }
-  # })
-  # output$choose_pc2 <- renderUI({
-  #   pca_data <- get_pca_data()
-  #   if (is.null(pca_data)) {
-  #     return()
-  #   } else {
-  #     selectInput('pc2', 'Second PC:', colnames(pca_data), "PC2")
-  #   }
-  # })
+  # input ui for choosing PCs
+  output$choose_pc1 <- renderUI({
+    pca_data <- get_pca_data()
+    if (is.null(pca_data)) {
+      tags$h5("Input GSE ID, GPL ID and select groupings before running PCA")
+    } else {
+      selectInput('pc1', 'Dim 1:', colnames(pca_data), "PC1")
+    }
+  })
+  output$choose_pc2 <- renderUI({
+    pca_data <- get_pca_data()
+    if (is.null(pca_data)) {
+      return()
+    } else {
+      selectInput('pc2', 'Dim 2:', colnames(pca_data), "PC2")
+    }
+  })
   
-  # # plot PCA
-  # output$pca <- renderPlotly({
-  #   pca_data <- get_pca_data()
-  #   if (is.null(pca_data)) {
-  #     return()
-  #   } else {
-  #     col_name <- "group"
-  #     ggplot(data = pca_data, aes_string(x = input$pc1, y = input$pc2, 
-  #                                        col = col_name)) +
-  #       geom_point() +
-  #       theme_bw(base_size = 18) +
-  #       theme(legend.position = "bottom", 
-  #             legend.title=element_blank(),
-  #             panel.grid = element_blank()) +
-  #       xlab(input$pc1) + ylab(input$pc2)
-  #   }
-  # })
+  # plot PCA
+  output$pca <- renderPlotly({
+    pca_data <- get_pca_data()
+    if (is_empty(pca_data)) return(NULL)
+    print(head(pca_data))
+    ggplot(data = pca_data, aes_string(x = input$pc1, y = input$pc2)) +
+      geom_point(aes(label=rownames(pca_data))) +
+      theme_bw(base_size = 18) +
+      theme(legend.position = "bottom",
+            legend.title=element_blank(),
+            panel.grid = element_blank()) +
+      xlab(input$pc1) + ylab(input$pc2)
+  })
   
   # # input ui for choosing contrast levels for GSEA
   # output$choose_numer <- renderUI({
-  #   gpl_data <- get_gpl_data()
-  #   if (is.null(gpl_data)) {
+  #   exprdat <- get_exprdat()
+  #   if (is.null(exprdat)) {
   #     tags$h5("Enter GSE ID, GPL ID and groupings info before attempting GSEA.")
   #   } else {
   #     cond_levels <- get_cond_levels()
@@ -718,8 +761,8 @@ server <- function(input, output) {
   #   }
   # })
   # output$choose_denom <- renderUI({
-  #   gpl_data <- get_gpl_data()
-  #   if (is.null(gpl_data)) {
+  #   exprdat <- get_exprdat()
+  #   if (is.null(exprdat)) {
   #     return()
   #   } else {
   #     cond_levels <- get_cond_levels()[[1]]
@@ -765,13 +808,13 @@ server <- function(input, output) {
   # 
   # # annotation data
   # anno <- reactive({
-  #   gpl_data <- get_gpl_data()
+  #   exprdat <- get_exprdat()
   #   if (input$org == "Hs") {
   #     org_db <- "org.Hs.eg.db"
   #   } else if (input$org == "Mm") {
   #     org_db <- "org.Mm.eg.db"
   #   }
-  #   bitr(fData(gpl_data)$'GENE SYMBOL', 
+  #   bitr(fData(exprdat)$'GENE SYMBOL', 
   #        fromType = "SYMBOL",
   #        toType = c("ENTREZID","ENSEMBL","REFSEQ",
   #                   "ACCNUM","UNIPROT"),
@@ -803,8 +846,8 @@ server <- function(input, output) {
   # 
   # # perform gsea test
   # gsea_test <- reactive({
-  #   gpl_data <- get_gpl_data()
-  #   if (is.null(gpl_data)) {
+  #   exprdat <- get_exprdat()
+  #   if (is.null(exprdat)) {
   #     return()
   #   } else {
   #     cond_levels <- get_cond_levels()
@@ -812,9 +855,9 @@ server <- function(input, output) {
   #     gene_sets <- term_to_gene(gene_sets)
   #     numer_idx <- which(cond_levels$cond_levels == input$numer)
   #     denom_idx <- which(cond_levels$cond_levels == input$denom)
-  #     exprs_mat <- exprs(gpl_data)
+  #     exprs_mat <- exprs(exprdat)
   #     entrezids <- mapIds(org.Hs.eg.db,
-  #                         keys = fData(gpl_data)[,'GENE SYMBOL'],
+  #                         keys = fData(exprdat)[,'GENE SYMBOL'],
   #                         keytype = "SYMBOL",
   #                         column = "ENTREZID")
   #     rownames(exprs_mat) <- entrezids
@@ -826,7 +869,7 @@ server <- function(input, output) {
   #   }
   # })
   # 
-  # # plot PCA
+  # # plot GSEA
   # output$gsea_plot <- renderPlot({
   #   gsea_res <- gsea_test()
   #   if (is.null(gsea_res)) {

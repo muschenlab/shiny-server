@@ -1,7 +1,6 @@
 library(shiny)
 library(tidyverse)
 library(fgsea)
-library(merTools)
 library(shinythemes)
 library(shinycssloaders)
 library(shinyWidgets)
@@ -93,6 +92,8 @@ ui <- fluidPage(
                    downloadButton("dl_expr_plot_ppt", label = "PPT",
                                   style = "font-size:12px;height:30px;padding:5px;"),
                    downloadButton("dl_expr_plot_png", label = "PNG",
+                                  style = "font-size:12px;height:30px;padding:5px;"),
+                   downloadButton("dl_expr_dat_xls", label = "Data XLSX",
                                   style = "font-size:12px;height:30px;padding:5px;")),
                br(), br(),
                tags$h3("Expression summary:"),
@@ -384,6 +385,59 @@ server <- function(input, output) {
       dims <- get_dims()
       plotOutput("expr_plot", height = dims$h, width = dims$w)
    })
+   
+   # download data as xlsx
+   output$dl_expr_dat_xls <- downloadHandler(
+      filename = function() {
+         exprsum <- get_expr_summary()
+         genes <- unique(exprsum$gene_name)
+         paste0("Expression_level_", paste(genes, collapse="_"), ".xlsx")
+      },
+      content = function(file) {
+         writexl::write_xlsx(reactvals$exprdat, path=file)
+   })
+   
+   # download expr plot as png
+   output$dl_expr_plot_png <- downloadHandler(
+      filename = function() {
+         exprsum <- get_expr_summary()
+         if (length(unique(exprsum$gene_name)) > 2) {
+            genes <- "multiple_genes"
+         } else {
+            genes <- paste0(unique(exprsum$gene_name), collapse = "_")
+         }
+         paste0("Expression_level_", genes, ".png")
+      },
+      content = function(file) {
+         plot <- sel_expr_plot()
+         dims <- get_dims()
+         ggsave(plot = plot, filename = file, units = "mm",
+                height = dims$h/3, width = dims$w/3)
+      }
+   )
+   
+   # download expr plot as ppt
+   output$dl_expr_plot_ppt <- downloadHandler(
+      filename = function() {
+         exprsum <- get_expr_summary()
+         if (length(unique(exprsum$gene_name)) > 2) {
+            genes <- "overall"
+         } else {
+            genes <- paste0(unique(exprsum$gene_name), collapse = "_")
+         }
+         gseid <- input$gse
+         paste0(gseid, "_", genes, "_expr.pptx")
+      },
+      content = function(file) {
+         plot <- sel_expr_plot()
+         dims <- get_dims()
+         file_pptx <- tempfile(fileext = ".pptx")
+         gen_pptx(plot, file_pptx,
+                  height = (dims$h/3)*0.039, 
+                  width = (dims$w/3)*0.039)
+         file.rename(from = file_pptx, to = file)
+      }
+   )
 }
 
 # Run the application 
