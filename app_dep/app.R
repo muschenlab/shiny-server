@@ -13,11 +13,14 @@ library(plotly)
 ################################### Setup #####################################
 
 # load data
-gene_summary_list <- list("B-cell vs solid" = readxl::read_excel("dep_data/bcell_vs_st_crispr_rnai.xlsx"),
-                          "T-cell vs solid" = readxl::read_excel("dep_data/tcell_vs_st_crispr_rnai.xlsx"))
+load("dep_data/depdata.rda")
 
-# set reactive vals
-reactvals <- reactiveValues(gene_summary_df = NULL)
+# function to display loading screen
+load_data <- function() {
+    Sys.sleep(3)
+    hide("loading_page")
+    shinyjs::show("main_content")
+}
 
 # function to generate pptx
 gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
@@ -30,80 +33,126 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
         print(target = file)
 }
 
+# reactive values
+reactvals <- reactiveValues(ct_summary_df = data.frame(),
+                            ct_sel = "",
+                            gene = "")
+
+# boxplot function
+gen_boxplot <- function(plotdat, x,  y, xlab = "", ylab) {
+    if (is_empty(plotdat)) return(NULL)
+    ggplot(plotdat, aes_string(x = x, y = y)) +
+        geom_boxplot(aes_string(fill = x), alpha = 0.6) +
+        coord_flip() +
+        theme_bw(base_size=14) +
+        theme(panel.grid = element_blank(),
+              legend.position = "none") +
+        xlab(xlab) + ylab(ylab)
+}
+
+# density plot function
+gen_densplot <- function(plotdat, x, y, xlab, ylab = "Frequency") {
+    if (is_empty(plotdat)) return(NULL)
+    ggplot(plotdat, aes_string(x = x)) +
+        geom_density(aes_string(fill = y), alpha = 0.6) +
+        theme_bw(base_size=14) +
+        theme(panel.grid = element_blank(),
+              legend.position = "bottom",
+              legend.box = "horizontal",
+              legend.title = element_blank()) +
+        xlab(xlab) + ylab(ylab)
+}
+
 ##################################### UI ######################################
 ui <- fluidPage(
     
     # title
-    title = "DEP", 
+    title = "ctDEP", 
     theme = shinytheme("cosmo"),
     titlePanel(tags$h2(tags$a(
         imageOutput("icon", inline = TRUE),
-        href="http://10.197.211.94:80"), "GEO")),
+        href="http://10.197.211.94:80"), "ctDEP")),
     
-    # change color for column selection
+    # change colors for DT row/column selection
     tags$style(HTML('table.dataTable tr.selected td{background-color: pink !important;}')),
     tags$style(HTML('table.dataTable td.selected {background-color: #3388ff88 !important;}')),
     
-    sidebarLayout(
-        #### Sidebar ####
-        sidebarPanel(width = 2,
-                     div(tags$small("Choose cell type comparison")),
-                     div(style = "font-size:13px;", uiOutput("comparison_choice"))
+    # main UI
+    tabsetPanel(
+        tabPanel("Summary",
+                 tags$h4("Celltype dependency summary:"),
+                 
+                 # celltype comparison choice
+                 div(style = "font-size:13px;", uiOutput("comparison_choice")),
+                 
+                 # drug metric plots
+                 fluidRow(align="center",
+                          plotOutput("metrics_overview", height = 250, width = 500) %>% withSpinner(color = "pink")
+                 ),
+                 fluidRow(
+                     splitLayout(cellWidths = c("30%", "20%", "20%", "20%"),
+                                 plotOutput("dss_dens", height = 225), 
+                                 plotOutput("dss_box_ds", height = 225), 
+                                 plotOutput("dss_box_st", height = 225),
+                                 plotOutput("ec50_plot", height = 225)),
+                     splitLayout(cellWidths = c("30%", "20%", "20%"),
+                                 plotOutput("crispr_dens", height = 225), 
+                                 plotOutput("crispr_box_ds", height = 225), 
+                                 plotOutput("crispr_box_st", height = 225)),
+                     splitLayout(cellWidths = c("30%", "20%", "20%"),
+                                 plotOutput("rnai_dens", height = 225), 
+                                 plotOutput("rnai_box_ds", height = 225), 
+                                 plotOutput("rnai_box_st", height = 225))
+                 ),
+                 
+                 # metrics table
+                 br(),br(),
+                 tags$h3("Ranking metrics:"),
+                 tags$h5("Select rows to plot metrics"),
+                 div(DT::dataTableOutput("celltype_dt"),
+                     style = "font-size:90%")
         ),
-        
-        #### Main ####
-        mainPanel(width = 10, 
-                  tabsetPanel(
-                      tabPanel("Genes",
-                               tags$h5(paste0("")),
-                               tags$h3("Gene-level dependency summary:"),
-                               tags$h5("Select rows to plot gene dependency"),
-                               div(DT::dataTableOutput("gene_summary_dt"),
-                                   style = "font-size:90%")
-                      ),
-                      tabPanel("Drugs",
-                               uiOutput("choose_pc1"),
-                               uiOutput("choose_pc2"),
-                               plotlyOutput("pca"),
-                               verbatimTextOutput("pca_hover")
-                      )
-                  )
-        )
+        tabPanel("Drugs")
     )
 )
 
 
 ################################### Server ####################################
-server <- function(input, output) {
+server <- function(input, output, session) {
+    
+    load_data()
     
     # icon
-    output$icon <- renderImage(list(src = "../hexagons/geo.png",
-                                    height = "90px", width = "85px"), 
+    output$icon <- renderImage(list(src = "dep_data/ctDEP.png",
+                                    height = "95px", width = "85px"), 
                                deleteFile = F)
     
     # cell type comparison choice UI
     output$comparison_choice <- renderUI({
-        selectInput('comparison', 'Comparison:', names(gene_summary_list), "B-cell vs solid")
+        selectInput('comparison', 'Comparison:', names(data$ct_diff), "B-cell vs solid tumor")
     })
-    
+
     # observe cell type comparison choice
     observeEvent(input$comparison, {
         if (is_empty(input$comparison)) return(NULL)
-        reactvals$gene_summary_df <- gene_summary_list[[input$comparison]]
+        reactvals$ct_summary_df <- data$ct_diff[[input$comparison]]
+        reactvals$ct_sel <- ifelse(grepl("B-cell", input$comparison),
+                                   "B-cell", "T-cell")
+        print(input$comparison)
+        print(reactvals$ct_sel)
     })
     
     # feature info table for feature/row selection
-    output$gene_summary_dt <- DT::renderDataTable({
-        gene_summary_df <- reactvals$gene_summary_df
-        if (is.null(gene_summary_df)) return(NULL)
+    output$celltype_dt <- DT::renderDataTable({
+        ct_summary_df <- reactvals$ct_summary_df %>%
+            mutate_if(is.numeric, round, digits = 3)
+        if (is.null(ct_summary_df)) return(NULL)
         DT::datatable(
-            data = gene_summary_df, 
+            data = ct_summary_df, 
             rownames = F,
-            colnames = Hmisc::capitalize(gsub("[_\\.]", " ", colnames(gene_summary_df))),
-            selection = list(mode = 'single', target = "row", 
-                             selected = 1),
+            selection = list(mode = 'single', target = "row", selected = 1),
             options = list(columnDefs = list(list(
-                targets = 0:(ncol(gene_summary_df)-1),
+                targets = 0:(ncol(ct_summary_df)-1),
                 render = JS(
                     "function(data, type, row, meta) {",
                     "return type === 'display' && data.length > 20 ?",
@@ -114,383 +163,186 @@ server <- function(input, output) {
         )
     })
     
-    # # handle row selection from features table
-    # fdat_rows_dt_proxy <- DT::dataTableProxy("fdat_rows_dt")
-    # observeEvent(input$fdat_rows_dt_select, {
-    #     if (isTRUE(input$fdat_rows_dt_select)) {
-    #         selected <- input$fdat_rows_dt_rows_selected
-    #         current <- input$fdat_rows_dt_rows_all
-    #         combined <- unique(c(selected, current))
-    #         nfeatures <- length(combined)
-    #         DT::selectRows(fdat_rows_dt_proxy, combined)
-    #     } else {
-    #         selected <- input$fdat_rows_dt_rows_selected
-    #         current <- input$fdat_rows_dt_rows_all
-    #         filtered <- selected[!selected %in% current]
-    #         nfeatures <- length(filtered)
-    #         DT::selectRows(fdat_rows_dt_proxy, NULL)
-    #         DT::selectRows(fdat_rows_dt_proxy, filtered)
-    #     }
-    #     output$n_features <- renderText(paste0("Total selected features: ", nfeatures))
-    # })
-    # observeEvent(input$fdat_rows_dt_rows_selected, {
-    #     nfeatures <- nrow(reactvals$es[input$fdat_rows_dt_rows_selected, ])
-    #     if (is_empty(nfeatures)) nfeatures <- 0
-    #     output$n_features <- renderText(paste0("Total selected features: ", nfeatures))
-    # })
-    # 
-    # # CRISPR data
-    # get_crispr_dat <- reactive({
-    #     genesdf <- reactvals$genesdf
-    #     if (is_empty(genesdf)) return(NULL)
-    #     
-    #     return(crispr_dat)
-    # })
-    # 
-    # # format es
-    # get_es <- reactive({
-    #     es <- reactvals$es
-    #     useless_cols <- apply(pData(es), 2, function(x) length(unique(x)) == 1)
-    #     useless_cols <- (useless_cols | colnames(pData(es)) %in% c("supplementary_file","data_row_count"))
-    #     pData(es) <- pData(es)[,!useless_cols]
-    #     useless_cols <- apply(fData(es), 2, function(x) length(unique(x)) == 1)
-    #     fData(es) <- fData(es)[,!useless_cols]
-    #     reactvals$es <- es
-    #     return(es)
-    # })
-    # 
-    # # generate expr summary
-    # get_exprdat <- reactive({
-    #     es <- reactvals$es
-    #     if (is_empty(es)) return(NULL)
-    #     fdat_col_idx <- input$fdat_cols_dt_columns_selected+1
-    #     if (length(fdat_col_idx) < 1) {
-    #         return(NULL)
-    #     } else if (length(fdat_col_idx) > 1) {
-    #         fData(es)$gene_name <- Reduce(paste, fData(es)[, fdat_col_idx])
-    #     } else {
-    #         fData(es)$gene_name <- fData(es)[, fdat_col_idx]
-    #     }
-    #     pdat_col_idx <- input$pdat_cols_dt_columns_selected+1
-    #     if (length(pdat_col_idx) < 1) {
-    #         return(NULL)
-    #     } else if (length(pdat_col_idx) > 1) {
-    #         pData(es)$group_name <- Reduce(paste, pData(es)[, pdat_col_idx])
-    #     } else {
-    #         pData(es)$group_name <- pData(es)[, pdat_col_idx]
-    #     }
-    #     samples_idx <- input$pdat_rows_dt_rows_selected
-    #     genes_idx <- input$fdat_rows_dt_rows_selected
-    #     if (length(samples_idx) < 1 | length(genes_idx) < 1) { return(NULL) }
-    #     es <- es[genes_idx, samples_idx]
-    #     if (nrow(es) > 5000) {
-    #         warning("Greater than 5000 features selected, just using subsample of 5000")
-    #         es <- es[sample(1:nrow(es), 5000, replace = F), ]
-    #     }
-    #     if (length(unique(pData(es)$group_name)) > 20) {
-    #         warning("Greater than 20 sample groups selected, just using subsample of 20")
-    #         es <- es[, sample(1:ncol(es), 20, replace = F)]
-    #     }
-    #     exprdat <- exprs(es) %>%
-    #         as.data.frame() %>%
-    #         mutate(gene_name = fData(es)$gene_name) %>%
-    #         gather("sample_id", "expr", -ncol(.)) 
-    #     exprdat$group_name <- pData(es)[match(exprdat$sample_id, colnames(es)),]$group_name
-    #     reactvals$exprdat <- exprdat
-    #     reactvals$group_levels <- as.character(unique(exprdat$group_name))
-    #     return(exprdat)
-    # })
-    # 
-    # # summarise expression by group
-    # get_expr_summary <- reactive({  
-    #     exprdat <- get_exprdat()
-    #     if (is_null(exprdat)) return(NULL)
-    #     exprdat %>%
-    #         group_by(gene_name, group_name) %>%
-    #         summarise(n = n(),
-    #                   mean = round(mean(expr, na.rm = T), 2),
-    #                   sd = round(sd(expr, na.rm = T), 2))
-    # })
-    # 
-    # # output expr summary dt
-    # output$expr_summary_dt <- DT::renderDataTable({
-    #     exprsum <- get_expr_summary()
-    #     if (is_empty(exprsum)) return(NULL)
-    #     DT::datatable(exprsum, 
-    #                   rownames = F,
-    #                   colnames = Hmisc::capitalize(gsub("_", " ", colnames(exprsum))),
-    #                   editable = 'cell',
-    #                   selection = list(target = 'row', mode = 'multiple', selected = NULL),
-    #                   caption = "Select columns or edit cells to change ordering and labels")
-    # })
-    # 
-    # # handle label editting/group highlighting
-    # summary_dt_proxy <- DT::dataTableProxy("expr_summary_dt")
-    # observeEvent(input$expr_summary_dt_cell_edit, {
-    #     exprsum <- get_expr_summary()
-    #     edited <- editData(exprsum, input$expr_summary_dt_cell_edit, 
-    #                        proxy = 'summary_dt_proxy', rownames = F)
-    #     exprdat <- reactvals$exprdat
-    #     idx <- match(exprdat$group_name, exprsum$group_name)
-    #     exprdat$group_name <- edited$group_name[idx]
-    #     reactvals$exprdat <- exprdat
-    #     levels <- as.character(reactvals$group_levels)
-    #     idx <- match(levels, unique(exprsum$group_name))
-    #     levels <- as.character(unique(edited$group_name)[idx])
-    #     reactvals$group_levels <- levels
-    # })
-    # observeEvent(input$expr_summary_dt_rows_selected, {
-    #     exprsum <- get_expr_summary()
-    #     if (is_empty(input$expr_summary_dt_rows_selected)) {
-    #         reactvals$selected_groups <- NULL
-    #     } else {
-    #         reactvals$selected_groups <- exprsum[input$expr_summary_dt_rows_selected,]$group_name
-    #     }
-    # })
-    # observeEvent(input$group_rankings, {
-    #     reactvals$group_levels <- as.character(unique(input$group_rankings))
-    # })
-    # 
-    # # log/normalise data
-    # observeEvent(input$log_expr, {
-    #     es <- reactvals$es
-    #     if (is_empty(es) | input$log_expr == 0) return(NULL)
-    #     if ((input$log_expr %% 2) != 0) {
-    #         exprs(es) <- log2(exprs(es) + 0.01)
-    #         reactvals$es <- es
-    #     } else {
-    #         exprs(es) <- 2^exprs(es)
-    #         reactvals$es <- es
-    #     }
-    # })
-    # observeEvent(input$linearize, {
-    #     es <- reactvals$es
-    #     if (is_empty(es) | input$linearize == 0) return(NULL)
-    #     if ((input$linearize %% 2) != 0) {
-    #         exprs(es) <- 2^exprs(es)
-    #         reactvals$es <- es
-    #     } else {
-    #         exprs(es) <- log2(exprs(es) + 0.01)
-    #         reactvals$es <- es
-    #     }
-    # })
-    # observeEvent(input$normalize, {
-    #     es <- reactvals$es
-    #     if (is_empty(es) | input$log_expr == 0) return(NULL)
-    #     if ((input$log_expr %% 2) != 0) {
-    #         exprs(es) <- preprocessCore::normalize.quantiles(exprs(es))
-    #         reactvals$es <- es
-    #     } else return(NULL)
-    # })
-    # 
-    # # group ranking
-    # output$group_ranks <- renderUI({
-    #     if ((input$rank_toggle %% 2) != 0) {
-    #         rank_list(text = "Drag groups to order",
-    #                   input_id = "group_rankings",
-    #                   labels = unique(reactvals$group_levels))
-    #     } else return(NULL)
-    # })
-    # 
-    # # group ranking
-    # output$distro_plot_ele <- renderUI({
-    #     exprdat <- reactvals$exprdat
-    #     if (is_empty(exprdat)) return(NULL) 
-    #     if (length(unique(exprdat$gene_name)) == 1) {
-    #         checkboxGroupButtons("plot_type", "Plot Element:",
-    #                              choices = list("Violin" = "violin",
-    #                                             "Boxplot" = "boxplot",
-    #                                             "Dotplot" = "dotplot",
-    #                                             "Range" = "range"),
-    #                              justified = T,
-    #                              size = 'xs', width = '25%',
-    #                              selected = c("violin","boxplot","dotplot"))
-    #     } else {
-    #         return(NULL)
-    #     }
-    # })
-    # 
-    # # color elements
-    # output$color_choice_1 <- renderUI({
-    #     exprdat <- reactvals$exprdat
-    #     selected_groups <- reactvals$selected_groups
-    #     if (is_empty(selected_groups)) return(NULL)
-    #     colourpicker::colourInput("col_sel", "Choose colors", value = "#88888888",
-    #                               allowTransparent = TRUE)
-    # })
-    # output$color_choice_2 <- renderUI({
-    #     exprdat <- reactvals$exprdat
-    #     selected_groups <- reactvals$selected_groups
-    #     if (is_empty(selected_groups)) return(NULL)
-    #     colourpicker::colourInput("col_unsel", NULL, value = "#3498dbff",
-    #                               allowTransparent = TRUE)
-    # })
-    # 
-    # # generate distro plot
-    # plot_distribution <- reactive({
-    #     exprdat <- reactvals$exprdat
-    #     if (is_empty(exprdat)) return(NULL)
-    #     exprdat$group_name <- factor(exprdat$group_name, levels = unique(reactvals$group_levels))
-    #     plot_types <- input$plot_type
-    #     if (is_empty(reactvals$selected_groups)) {
-    #         exprdat$group_col <- exprdat$group_name
-    #     } else {
-    #         exprdat$group_col <- ifelse(exprdat$group_name %in% reactvals$selected_groups, "Unselected", "Selected")
-    #         exprdat$group_col <- factor(exprdat$group_col, levels = c("Selected", "Unselected"))
-    #     }
-    #     p <- ggplot(exprdat, aes(x = group_name, y = expr)) +
-    #         theme_bw(base_size = 18) + 
-    #         ylab(paste0(unique(exprdat$gene_symbol)," Expression [AU]")) +
-    #         theme(panel.grid = element_blank(),
-    #               legend.position = "none",
-    #               axis.title.x = element_blank(),
-    #               axis.ticks.x = element_blank(),
-    #               axis.text.y = element_text(color = "black"),
-    #               axis.text.x = element_text(angle = 45, hjust = 1, color = "black"))
-    #     if (!is_empty(reactvals$selected_groups)) {
-    #         p <- p + scale_color_manual(values = c(input$col_sel, input$col_unsel)) +
-    #             scale_fill_manual(values = c(input$col_sel, input$col_unsel))
-    #     }
-    #     if ("dotplot" %in% plot_types) {
-    #         p <- p + geom_point(aes(color = group_col),
-    #                             position = position_dodge2(width = .5))
-    #     }
-    #     if ("violin" %in% plot_types) {
-    #         p <- p + geom_violin(aes(fill = group_col))
-    #     }
-    #     if ("range" %in% plot_types) {
-    #         p <- p + stat_summary(aes(color = group_col), 
-    #                               geom = "pointrange",
-    #                               fun.data = "mean_cl_boot")
-    #     }
-    #     if ("boxplot" %in% plot_types) {
-    #         if ("dotplot" %in% plot_types & "violin" %in% plot_types) {
-    #             p <- p + geom_boxplot(aes(fill = group_col), width = 0.15, outlier.shape = NA)
-    #         } else if ("dotplot" %in% plot_types) {
-    #             p <- p + geom_boxplot(aes(fill = group_col), width = 0.6, outlier.shape = NA)
-    #         } else if ("violin" %in% plot_types) {
-    #             p <- p + geom_boxplot(aes(fill = group_col), width = 0.15)
-    #         } else {
-    #             p <- p + geom_boxplot(aes(fill = group_col), width = 0.15)
-    #         }
-    #     }
-    #     return(p)
-    # })
-    # 
-    # # generate bivariate plot
-    # plot_bivariate <- reactive({
-    #     exprdat <- reactvals$exprdat
-    #     if (is_empty(exprdat)) return(NULL)
-    #     if (is_empty(reactvals$selected_groups)) {
-    #         exprdat$group_col <- exprdat$group_name
-    #     } else {
-    #         exprdat$group_col <- ifelse(exprdat$group_name %in% reactvals$selected_groups, "B", "A")
-    #     }
-    #     exprdat$group_name <- factor(exprdat$group_name, levels = unique(reactvals$group_levels))
-    #     genes <- unique(exprdat$gene_name)
-    #     exprdat <- spread(exprdat, "gene_name", "expr")
-    #     genenames <-  colnames(exprdat)[c(4:5)]
-    #     colnames(exprdat)[c(4:5)] <- c("geneA", "geneB")
-    #     p <- ggplot(exprdat, aes(x = geneA, y = geneB, color = group_col)) +
-    #         theme_bw(base_size = 18) + 
-    #         xlab(paste0(genenames[1]," Expression [AU]")) +
-    #         ylab(paste0(genenames[2]," Expression [AU]")) +
-    #         theme(panel.grid = element_blank(),
-    #               axis.text.y = element_text(color = "black"),
-    #               axis.text.x = element_text(color = "black")) +
-    #         geom_point()
-    #     return(p)
-    # })
-    # 
-    # # generate boxplot plot
-    # plot_qc_box <- reactive({
-    #     exprdat <- reactvals$exprdat
-    #     if (is_empty(exprdat)) return(NULL) 
-    #     p <- ggplot(exprdat, aes(x = group_name, y = expr)) +
-    #         geom_boxplot() +
-    #         theme_bw(base_size = 18) + 
-    #         ylab("Expression [AU]") +
-    #         theme(panel.grid = element_blank(),
-    #               axis.title.x = element_blank(),
-    #               axis.ticks.x = element_blank(),
-    #               axis.text.y = element_text(color = "black"),
-    #               axis.text.x = element_text(angle = 45, hjust = 1, color = "black"))
-    #     return(p)
-    # })
-    # 
-    # # output distro plot
-    # sel_expr_plot <- reactive({
-    #     exprsum <- get_expr_summary()
-    #     if (is_empty(exprsum)) {
-    #         validate("Please select features & samples")
-    #     }
-    #     if (length(unique(exprsum$gene_name)) == 1) {
-    #         plot_distribution()
-    #     } else if (length(unique(exprsum$gene_name)) == 2) {
-    #         plot_bivariate()
-    #     } else {
-    #         plot_qc_box()
-    #     }
-    # })
-    # 
-    # # output expr plot
-    # output$expr_plot <- renderPlot({
-    #     sel_expr_plot()
-    # })
-    # get_dims <- reactive({
-    #     exprsum <- get_expr_summary()
-    #     ncond <- length(unique(exprsum$group_name))
-    #     width <- max(c(120, min(c(70*ncond, 1000))))
-    #     list(w = width, h = 350)
-    # })
-    # output$expr_plot_ui <- renderUI({
-    #     sel_expr_plot()
-    #     dims <- get_dims()
-    #     plotOutput("expr_plot", height = dims$h, width = dims$w)
-    # })
-    # 
-    # # download expr plot as png
-    # output$dl_expr_plot_png <- downloadHandler(
-    #     filename = function() {
-    #         exprsum <- get_expr_summary()
-    #         if (length(unique(exprsum$gene_name)) > 2) {
-    #             genes <- "overall"
-    #         } else {
-    #             genes <- paste0(unique(exprsum$gene_name), collapse = "_")
-    #         }
-    #         gseid <- input$gse
-    #         paste0(gseid, "_", genes, "_expr.png")
-    #     },
-    #     content = function(file) {
-    #         plot <- sel_expr_plot()
-    #         dims <- get_dims()
-    #         ggsave(plot = plot, filename = file, units = "mm",
-    #                height = dims$h/3, width = dims$w/3)
-    #     }
-    # )
-    # 
-    # # download expr plot as ppt
-    # output$dl_expr_plot_ppt <- downloadHandler(
-    #     filename = function() {
-    #         exprsum <- get_expr_summary()
-    #         if (length(unique(exprsum$gene_name)) > 2) {
-    #             genes <- "overall"
-    #         } else {
-    #             genes <- paste0(unique(exprsum$gene_name), collapse = "_")
-    #         }
-    #         gseid <- input$gse
-    #         paste0(gseid, "_", genes, "_expr.pptx")
-    #     },
-    #     content = function(file) {
-    #         plot <- sel_expr_plot()
-    #         dims <- get_dims()
-    #         file_pptx <- tempfile(fileext = ".pptx")
-    #         gen_pptx(plot, file_pptx,
-    #                  height = (dims$h/3)*0.039, 
-    #                  width = (dims$w/3)*0.039)
-    #         file.rename(from = file_pptx, to = file)
-    #     }
-    # )
+    # select gene
+    observeEvent(input$celltype_dt_rows_selected, {
+        if (is_empty(input$celltype_dt_rows_selected)) return(NULL)
+        df <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]
+        reactvals$gene <- df$Gene
+        print(reactvals$gene)
+    })
+    
+    # metrics overview
+    output$metrics_overview <- renderPlot({
+        print(head(reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]))
+        plotdat <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ] %>%
+            gather("metric", "rank", -c(1:3)) %>%
+            mutate(rank = rank*100, 
+                   metric = factor(metric, 
+                                   levels = c("Avg_rank","dDSS1_rank","dDSS2_rank","dDSS3_rank","dRNAi_rank","dCRISPR_rank"),
+                                   labels = c("overall","dDSS1","dDSS2","dDSS3","dRNAi","dCRISPR")))
+        ggplot(plotdat, aes(x=metric, y=rank)) +
+            geom_point(size=4, color="firebrick", shape=21) +
+            coord_flip(clip="off") +
+            scale_y_continuous(limits=c(0,100), expand=c(0,0), name="Differential rank") +
+            xlab("Metric") +
+            theme_bw(base_size = 14) +
+            theme(panel.border = element_blank(),
+                  panel.grid.major.x = element_blank(),
+                  panel.grid.minor.x = element_blank(),
+                  panel.grid.minor.y = element_blank(),
+                  axis.ticks.y = element_blank(),
+                  axis.line.x = element_line(),
+                  panel.grid.major.y = element_line(size = 2),
+                  plot.margin = margin(2,2,2,2, "cm"))
+    })
+    
+    # get drug metrics for selected row
+    get_drug_metrics <- reactive({
+        ct_summary_df <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]
+        if (nrow(ct_summary_df) < 1) return(NULL)
+        metrics <- data$ctd_metrics %>%
+            filter(treatmentid == ct_summary_df$Compound)
+        if (is_empty(metrics)) return(NULL)
+        if (reactvals$ct_sel == "B-cell") {
+            fctlvls <- rev(c("Solid","B-cell","T-cell","Myeloma","Myeloid"))
+            metrics <- metrics %>% 
+                mutate(disease = factor(disease, levels = fctlvls))
+        }
+        if (reactvals$ct_sel == "T-cell") {
+            fctlvls <- rev(c("Solid","T-cell","B-cell","Myeloma","Myeloid"))
+            metrics <- metrics %>% 
+                mutate(disease = factor(disease, levels = fctlvls))
+        }
+        return(metrics)
+    })
+    
+    # subtype factor level formatting
+    get_drug_subtype_metrics <- reactive({
+        plotdat <- get_drug_metrics() 
+        if (is_empty(plotdat)) return(NULL)
+        plotdat <- plotdat %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            mutate(st = ifelse(disease == reactvals$ct_sel,
+                               as.character(subtype), as.character(disease))) %>%
+            filter(!is.na(st))
+        if (reactvals$ct_sel == "B-cell") {
+            plotdat <- plotdat %>%
+                mutate(st = factor(st, levels = rev(c("Solid","B-ALL","CLL","Mantle cell",
+                                                      "Burkitts","DLBCL","other NHL", "Hodgkin"))))
+        }
+        if (reactvals$ct_sel == "T-cell") {
+            plotdat <- plotdat %>%
+                mutate(st = factor(st, levels = rev(c("Solid","T-ALL","T-cell lymphoma"))))
+        }
+        return(plotdat)
+    })
+    
+    # DSS1 density plot by disease
+    output$dss_dens <- renderPlot({
+        plotdat <- get_drug_metrics() 
+        if (is_empty(plotdat)) return(NULL)
+        plotdat <- plotdat %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+        gen_densplot(plotdat, "DSS1", "disease", xlab = "DSS1 score")
+    })
+    
+    # DSS1 boxplot by disease
+    output$dss_box_ds <- renderPlot({
+        plotdat <- get_drug_metrics() 
+        if (is_empty(plotdat)) return(NULL)
+        plotdat <- plotdat %>%
+            filter(!is.na(disease)) 
+        gen_boxplot(plotdat, "disease", "DSS1", ylab = "DSS1 score")
+    })
+    
+    # DSS1 boxplot by subtype
+    output$dss_box_st <- renderPlot({
+        plotdat <- get_drug_subtype_metrics()
+        if (is_empty(plotdat)) return(NULL)
+        gen_boxplot(plotdat, "st", "DSS1", ylab = "DSS1 score")
+    })
+    
+    # EC50 boxplot by subtype
+    output$ec50_plot <- renderPlot({
+        plotdat <- get_drug_subtype_metrics()
+        if (is_empty(plotdat)) return(NULL)
+        gen_boxplot(plotdat, "st", "EC50", ylab = "EC50 (\U03BCM)")
+    })
+    
+    # get crispr data
+    get_crispr_dat <- reactive({
+        gene <- reactvals$gene
+        geneidx <- which(fData(data$crispr_es)$genesymbol == gene)
+        df <- data.frame(crispr_effect = exprs(data$crispr_es)[geneidx, ], 
+                         disease = pData(data$crispr_es)$disease,
+                         subtype = pData(data$crispr_es)$subtype) %>%
+            mutate(disease = factor(disease, levels = levels(data$crispr_es$disease)),
+                   subtype = factor(subtype, levels = levels(data$crispr_es$subtype)))
+        if (is_empty(df)) return(NULL)
+        return(df)
+    })
+    
+    # CRISPR density plot by disease
+    output$crispr_dens <- renderPlot({
+        plotdat <- get_crispr_dat() %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+        gen_densplot(plotdat, "crispr_effect", "disease", xlab = "CRISPR effect score")
+    })
+    
+    # CRISPR boxplot by disease
+    output$crispr_box_ds <- renderPlot({
+        plotdat <- get_crispr_dat() %>%
+            filter(!is.na(disease)) 
+        gen_boxplot(plotdat, "disease", "crispr_effect", ylab = "CRISPR effect score")
+    })
+    
+    # CRISPR boxplot by subtype
+    output$crispr_box_st <- renderPlot({
+        plotdat <- get_crispr_dat() %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            mutate(st = ifelse(disease == reactvals$ct_sel,
+                               as.character(subtype), as.character(disease))) %>%
+            mutate(st = factor(st, levels = c("Solid", levels(data$crispr_es$subtype)))) %>%
+            filter(!is.na(st))
+        gen_boxplot(plotdat, "st", "crispr_effect", ylab = "CRISPR effect score")
+    })
+    
+    # get RNAi data
+    get_rnai_dat <- reactive({
+        gene <- reactvals$gene
+        geneidx <- which(fData(data$rnai_es)$genesymbol == gene)
+        data.frame(rnai_effect = exprs(data$rnai_es)[geneidx, ], 
+                   disease = pData(data$rnai_es)$disease,
+                   subtype = pData(data$rnai_es)$subtype) %>%
+            mutate(disease = factor(disease, levels = levels(data$rnai_es$disease)),
+                   subtype = factor(subtype, levels = levels(data$rnai_es$subtype)))
+    })
+    
+    # RNAi density plot by disease
+    output$rnai_dens <- renderPlot({
+        plotdat <- get_rnai_dat() %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+        gen_densplot(plotdat, "rnai_effect", "disease", xlab = "RNAi effect score")
+    })
+    
+    # RNAi boxplot by disease
+    output$rnai_box_ds <- renderPlot({
+        plotdat <- get_rnai_dat() %>%
+            filter(!is.na(disease)) 
+        gen_boxplot(plotdat, "disease", "rnai_effect", ylab = "RNAi effect score")
+    })
+    
+    # RNAi boxplot by subtype
+    output$rnai_box_st <- renderPlot({
+        plotdat <- get_rnai_dat() %>%
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            mutate(st = ifelse(disease == reactvals$ct_sel,
+                               as.character(subtype), as.character(disease))) %>%
+            mutate(st = factor(st, levels = c("Solid", levels(data$rnai_es$subtype)))) %>%
+            filter(!is.na(st))
+        gen_boxplot(plotdat, "st", "rnai_effect", ylab = "RNAi effect score")
+    })
+    
 }
 
 # Run the application 

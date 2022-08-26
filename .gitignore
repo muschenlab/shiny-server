@@ -13,6 +13,7 @@ node_modules
 data/H3K27ac/*ChIPseq.bw
 
 # app data
+**/*_data/
 app_ccle/ccle_data/
 app_expr/expr_data/
 app_expr/expr_dump.sql
