@@ -1,0 +1,1 @@
+ls -d **/*_data | rsync -arv --files-from=- . mer92@10.5.36.196:/srv/shiny-server/

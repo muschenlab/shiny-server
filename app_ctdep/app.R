@@ -124,7 +124,7 @@ server <- function(input, output, session) {
     load_data()
     
     # icon
-    output$icon <- renderImage(list(src = "dep_data/ctDEP.png",
+    output$icon <- renderImage(list(src = "../hexagons/jelly.png",
                                     height = "95px", width = "85px"), 
                                deleteFile = F)
     
