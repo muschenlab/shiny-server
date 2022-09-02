@@ -9,6 +9,7 @@ library(DT)
 library(rvg)
 library(officer)
 library(plotly)
+library(Biobase)
 
 ################################### Setup #####################################
 
@@ -302,7 +303,7 @@ server <- function(input, output, session) {
             filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
             mutate(st = ifelse(disease == reactvals$ct_sel,
                                as.character(subtype), as.character(disease))) %>%
-            mutate(st = factor(st, levels = c("Solid", levels(data$crispr_es$subtype)))) %>%
+            mutate(st = factor(st, levels = c(levels(data$crispr_es$subtype), "Solid"))) %>%
             filter(!is.na(st))
         gen_boxplot(plotdat, "st", "crispr_effect", ylab = "CRISPR effect score")
     })
@@ -338,7 +339,7 @@ server <- function(input, output, session) {
             filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
             mutate(st = ifelse(disease == reactvals$ct_sel,
                                as.character(subtype), as.character(disease))) %>%
-            mutate(st = factor(st, levels = c("Solid", levels(data$rnai_es$subtype)))) %>%
+            mutate(st = factor(st, levels = c(levels(data$rnai_es$subtype), "Solid"))) %>%
             filter(!is.na(st))
         gen_boxplot(plotdat, "st", "rnai_effect", ylab = "RNAi effect score")
     })
