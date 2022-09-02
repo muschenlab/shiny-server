@@ -43,25 +43,49 @@ reactvals <- reactiveValues(ct_summary_df = data.frame(),
 gen_boxplot <- function(plotdat, x,  y, xlab = "", ylab) {
     if (is_empty(plotdat)) return(NULL)
     ggplot(plotdat, aes_string(x = x, y = y)) +
-        geom_boxplot(aes_string(fill = x), alpha = 0.6) +
+        geom_boxplot(aes_string(fill = x)) +
         coord_flip() +
         theme_bw(base_size=14) +
         theme(panel.grid = element_blank(),
               legend.position = "none") +
-        xlab(xlab) + ylab(ylab)
+        xlab(xlab) + ylab(ylab) +
+        scale_fill_manual(values=pickcols(jellypal, length(levels(plotdat[,x]))))
 }
 
 # density plot function
 gen_densplot <- function(plotdat, x, y, xlab, ylab = "Frequency") {
     if (is_empty(plotdat)) return(NULL)
     ggplot(plotdat, aes_string(x = x)) +
-        geom_density(aes_string(fill = y), alpha = 0.6) +
+        geom_density(aes_string(fill = y)) +
         theme_bw(base_size=14) +
         theme(panel.grid = element_blank(),
               legend.position = "bottom",
               legend.box = "horizontal",
               legend.title = element_blank()) +
-        xlab(xlab) + ylab(ylab)
+        xlab(xlab) + ylab(ylab) +
+        scale_fill_manual(values=pickcols(jellypal, length(levels(plotdat[,y]))))
+}
+
+# function just to print plain labels on log scale axis
+plain <- function(x,...) {
+    format(x, ..., scientific = FALSE, drop0trailing = TRUE)
+}
+
+# pallette function
+jellypal <- c(
+              
+              
+              
+              )
+jellypal <- c("#714481cc","#712e7ccc","#9b6295cc",
+              "#b36f8ecc","#b9869fcc","#d49aa2cc",
+              "#a2b2a8cc","#a7c3c6cc","#7d8b99cc",
+              "#528199cc","#426284cc",
+              "#eccad3cc","#eed9e0ff","#d0e6ea99")
+    
+pickcols <- function(pal, n) {
+    idx <- c(round(seq(1, length(pal), length(pal)/(n-1))), length(pal))
+    pal[idx]
 }
 
 ##################################### UI ######################################
@@ -75,41 +99,57 @@ ui <- fluidPage(
         href="http://10.197.211.94:80"), "ctDEP")),
     
     # change colors for DT row/column selection
-    tags$style(HTML('table.dataTable tr.selected td{background-color: pink !important;}')),
-    tags$style(HTML('table.dataTable td.selected {background-color: #3388ff88 !important;}')),
+    tags$style(HTML('table.dataTable tr.selected td{background-color: #B9869F99 !important;}')),
+    tags$style(HTML('table.dataTable td.selected {background-color: #D0E6EA99 !important;}')),
+    tags$style(HTML(".tabbable > .nav > li > a { color:#A7C4C6FF}")),
+    tags$style(HTML(".tabbable > .nav > li[class=active] > a { color:black}")),
     
     # main UI
     tabsetPanel(
         tabPanel("Summary",
-                 tags$h4("Celltype dependency summary:"),
+                 tags$h3("Celltype dependency summary metrics"),
+                 tags$h5(paste0("Select celltype comparison of interest, ",
+                                "then select a row from the table at the bottom to plot sensitivity metrics")),
                  
                  # celltype comparison choice
                  div(style = "font-size:13px;", uiOutput("comparison_choice")),
                  
                  # drug metric plots
+                 tags$h4("Overall metrics:"),
+                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively sensitive the celltype of interest ",
+                                "is relative to the control population (higher rank = more selective). Three primary metrics are ",
+                                "considered - the CRISPR effect score, RNAi effect score, and drug sensitivity score (DSS).")),
                  fluidRow(align="center",
-                          plotOutput("metrics_overview", height = 250, width = 500) %>% withSpinner(color = "pink")
+                          plotOutput("metrics_overview", height = 175, width = 400) %>% withSpinner(color = "#D0E6EA99")
                  ),
-                 fluidRow(
-                     splitLayout(cellWidths = c("30%", "20%", "20%", "20%"),
-                                 plotOutput("dss_dens", height = 225), 
-                                 plotOutput("dss_box_ds", height = 225), 
-                                 plotOutput("dss_box_st", height = 225),
-                                 plotOutput("ec50_plot", height = 225)),
-                     splitLayout(cellWidths = c("30%", "20%", "20%"),
-                                 plotOutput("crispr_dens", height = 225), 
-                                 plotOutput("crispr_box_ds", height = 225), 
-                                 plotOutput("crispr_box_st", height = 225)),
-                     splitLayout(cellWidths = c("30%", "20%", "20%"),
-                                 plotOutput("rnai_dens", height = 225), 
-                                 plotOutput("rnai_box_ds", height = 225), 
-                                 plotOutput("rnai_box_st", height = 225))
-                 ),
+                 
+                 tags$h4("DSS:"),
+                 tags$h5(paste0("Drug sensitivity scores integrate the dose-response curve into a single metric - ",
+                                "(higher score = more sensitive, range 0-100)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%", "22%"),
+                                      plotOutput("dss_dens", height = 225), 
+                                      plotOutput("dss_box_ds", height = 225), 
+                                      plotOutput("dss_box_st", height = 225),
+                                      plotOutput("ec50_plot", height = 225))),
+                 tags$h4("CRISPR:"),
+                 tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-out on viability - ",
+                                "(lower score = more sensitive)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%"),
+                                      plotOutput("crispr_dens", height = 225), 
+                                      plotOutput("crispr_box_ds", height = 225), 
+                                      plotOutput("crispr_box_st", height = 225))),
+                 tags$h4("RNAi:"),
+                 tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-down on viability - ",
+                                "(lower scores = more sensitive)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%"),
+                                      plotOutput("rnai_dens", height = 225), 
+                                      plotOutput("rnai_box_ds", height = 225), 
+                                      plotOutput("rnai_box_st", height = 225))),
                  
                  # metrics table
                  br(),br(),
                  tags$h3("Ranking metrics:"),
-                 tags$h5("Select rows to plot metrics"),
+                 tags$h5("Select a row to plot metrics"),
                  div(DT::dataTableOutput("celltype_dt"),
                      style = "font-size:90%")
         ),
@@ -130,7 +170,7 @@ server <- function(input, output, session) {
     
     # cell type comparison choice UI
     output$comparison_choice <- renderUI({
-        selectInput('comparison', 'Comparison:', names(data$ct_diff), "B-cell vs solid tumor")
+        selectInput('comparison', 'Celltype comparison:', names(data$ct_diff), "B-cell vs solid tumor")
     })
 
     # observe cell type comparison choice
@@ -182,7 +222,7 @@ server <- function(input, output, session) {
                                    levels = c("Avg_rank","dDSS1_rank","dDSS2_rank","dDSS3_rank","dRNAi_rank","dCRISPR_rank"),
                                    labels = c("overall","dDSS1","dDSS2","dDSS3","dRNAi","dCRISPR")))
         ggplot(plotdat, aes(x=metric, y=rank)) +
-            geom_point(size=4, color="firebrick", shape=21) +
+            geom_point(size=4, color="#714481ff", shape=21) +
             coord_flip(clip="off") +
             scale_y_continuous(limits=c(0,100), expand=c(0,0), name="Differential rank") +
             xlab("Metric") +
@@ -194,7 +234,7 @@ server <- function(input, output, session) {
                   axis.ticks.y = element_blank(),
                   axis.line.x = element_line(),
                   panel.grid.major.y = element_line(size = 2),
-                  plot.margin = margin(2,2,2,2, "cm"))
+                  plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
     })
     
     # get drug metrics for selected row
@@ -243,7 +283,8 @@ server <- function(input, output, session) {
         plotdat <- get_drug_metrics() 
         if (is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            droplevels()
         gen_densplot(plotdat, "DSS1", "disease", xlab = "DSS1 score")
     })
     
@@ -252,22 +293,27 @@ server <- function(input, output, session) {
         plotdat <- get_drug_metrics() 
         if (is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
-            filter(!is.na(disease)) 
-        gen_boxplot(plotdat, "disease", "DSS1", ylab = "DSS1 score")
+            filter(!is.na(disease)) %>%
+            droplevels()
+        gen_boxplot(plotdat, "disease", "DSS1", ylab = "DSS1 score") 
     })
     
     # DSS1 boxplot by subtype
     output$dss_box_st <- renderPlot({
-        plotdat <- get_drug_subtype_metrics()
+        plotdat <- get_drug_subtype_metrics() %>%
+            droplevels()
         if (is_empty(plotdat)) return(NULL)
-        gen_boxplot(plotdat, "st", "DSS1", ylab = "DSS1 score")
+        gen_boxplot(plotdat, "st", "DSS1", ylab = "DSS1 score") 
     })
     
     # EC50 boxplot by subtype
     output$ec50_plot <- renderPlot({
-        plotdat <- get_drug_subtype_metrics()
+        plotdat <- get_drug_subtype_metrics() %>%
+            droplevels()
         if (is_empty(plotdat)) return(NULL)
-        gen_boxplot(plotdat, "st", "EC50", ylab = "EC50 (\U03BCM)")
+        gen_boxplot(plotdat, "st", "EC50", ylab = "EC50 (\U03BCM)") +
+            scale_y_log10(labels=plain) #+
+            # theme(axis.text.x = element_text(angle=45, hjust=1))
     })
     
     # get crispr data
@@ -286,14 +332,16 @@ server <- function(input, output, session) {
     # CRISPR density plot by disease
     output$crispr_dens <- renderPlot({
         plotdat <- get_crispr_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            droplevels()
         gen_densplot(plotdat, "crispr_effect", "disease", xlab = "CRISPR effect score")
     })
     
     # CRISPR boxplot by disease
     output$crispr_box_ds <- renderPlot({
         plotdat <- get_crispr_dat() %>%
-            filter(!is.na(disease)) 
+            filter(!is.na(disease)) %>%
+            droplevels()
         gen_boxplot(plotdat, "disease", "crispr_effect", ylab = "CRISPR effect score")
     })
     
@@ -304,7 +352,8 @@ server <- function(input, output, session) {
             mutate(st = ifelse(disease == reactvals$ct_sel,
                                as.character(subtype), as.character(disease))) %>%
             mutate(st = factor(st, levels = c(levels(data$crispr_es$subtype), "Solid"))) %>%
-            filter(!is.na(st))
+            filter(!is.na(st)) %>%
+            droplevels()
         gen_boxplot(plotdat, "st", "crispr_effect", ylab = "CRISPR effect score")
     })
     
@@ -322,14 +371,16 @@ server <- function(input, output, session) {
     # RNAi density plot by disease
     output$rnai_dens <- renderPlot({
         plotdat <- get_rnai_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid"))
+            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            droplevels()
         gen_densplot(plotdat, "rnai_effect", "disease", xlab = "RNAi effect score")
     })
     
     # RNAi boxplot by disease
     output$rnai_box_ds <- renderPlot({
         plotdat <- get_rnai_dat() %>%
-            filter(!is.na(disease)) 
+            filter(!is.na(disease)) %>%
+            droplevels()
         gen_boxplot(plotdat, "disease", "rnai_effect", ylab = "RNAi effect score")
     })
     
@@ -340,7 +391,8 @@ server <- function(input, output, session) {
             mutate(st = ifelse(disease == reactvals$ct_sel,
                                as.character(subtype), as.character(disease))) %>%
             mutate(st = factor(st, levels = c(levels(data$rnai_es$subtype), "Solid"))) %>%
-            filter(!is.na(st))
+            filter(!is.na(st)) %>%
+            droplevels()
         gen_boxplot(plotdat, "st", "rnai_effect", ylab = "RNAi effect score")
     })
     
