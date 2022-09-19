@@ -159,12 +159,12 @@ ui <- fluidPage(
                  tags$h4("CRISPR:"),
                  div(DT::dataTableOutput("cl_crisprdat"),
                      style = "font-size:90%"),
-                 downloadButton("dl_cl_rnai_xls", label = "XLS",
+                 downloadButton("dl_cl_crispr_xls", label = "XLS",
                                 style = "font-size:12px;height:30px;padding:5px;"),
                  tags$h4("RNAi:"),
                  div(DT::dataTableOutput("cl_rnaidat"),
                      style = "font-size:90%"),
-                 downloadButton("dl_cl_crispr_xls", label = "XLS",
+                 downloadButton("dl_cl_rnai_xls", label = "XLS",
                                 style = "font-size:12px;height:30px;padding:5px;")
                  
         ),
