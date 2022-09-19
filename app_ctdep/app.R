@@ -341,7 +341,8 @@ server <- function(input, output, session) {
     
     # get crispr data
     get_crispr_dat <- reactive({
-        gene <- reactvals$gene
+        gene <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]$Gene
+        # gene <- reactvals$gene
         geneidx <- which(fData(data$crispr_es)$genesymbol == gene)
         df <- data.frame(crispr_effect = exprs(data$crispr_es)[geneidx, ], 
                          disease = pData(data$crispr_es)$disease,
