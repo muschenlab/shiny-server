@@ -16,13 +16,6 @@ library(Biobase)
 # load data
 load("dep_data/depdata.rda")
 
-# function to display loading screen
-load_data <- function() {
-    Sys.sleep(3)
-    hide("loading_page")
-    shinyjs::show("main_content")
-}
-
 # function to generate pptx
 gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
     read_pptx() %>%
@@ -35,9 +28,7 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 }
 
 # reactive values
-reactvals <- reactiveValues(ct_summary_df = data.frame(),
-                            ct_sel = "",
-                            gene = "")
+reactvals <- reactiveValues()
 
 # boxplot function
 gen_boxplot <- function(plotdat, x,  y, xlab = "", ylab) {
@@ -72,11 +63,6 @@ plain <- function(x,...) {
 }
 
 # pallette function
-jellypal <- c(
-              
-              
-              
-              )
 jellypal <- c("#714481cc","#712e7ccc","#9b6295cc",
               "#b36f8ecc","#b9869fcc","#d49aa2cc",
               "#a2b2a8cc","#a7c3c6cc","#7d8b99cc",
@@ -114,8 +100,21 @@ ui <- fluidPage(
                  # celltype comparison choice
                  div(style = "font-size:13px;", uiOutput("comparison_choice")),
                  
-                 # drug metric plots
-                 tags$h4("Overall metrics:"),
+                 # scatter plot of average
+                 tags$h3("Average sensitivity per compound:"),
+                 tags$h5("Click or drag a box around compounds to select"),
+                 fluidRow(align="center",
+                          plotOutput("sens_scatter", height = 450, width = 450, brush = "scatter_brush")),
+                 
+                 # metrics table
+                 br(),br(),
+                 tags$h3("Selected compounds:"),
+                 tags$h5("Select a row to plot compound/target sensitivity accross cell lines below"),
+                 div(DT::dataTableOutput("celltype_dt"),
+                     style = "font-size:90%"),
+                 
+                 # rankings plot
+                 tags$h4("Differential rankings:"),
                  tags$h5(paste0("Differential sensitivity ranks indicate how selectively sensitive the celltype of interest ",
                                 "is relative to the control population (higher rank = more selective). Three primary metrics are ",
                                 "considered - the CRISPR effect score, RNAi effect score, and drug sensitivity score (DSS).")),
@@ -123,7 +122,8 @@ ui <- fluidPage(
                           plotOutput("metrics_overview", height = 175, width = 400) %>% withSpinner(color = "#D0E6EA99")
                  ),
                  
-                 tags$h4("DSS:"),
+                 # DSS plots
+                 tags$h4("Drug sensitivity scores (DSS):"),
                  tags$h5(paste0("Drug sensitivity scores integrate the dose-response curve into a single metric - ",
                                 "(higher score = more sensitive, range 0-100)")),
                  fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%", "22%"),
@@ -131,6 +131,7 @@ ui <- fluidPage(
                                       plotOutput("dss_box_ds", height = 225), 
                                       plotOutput("dss_box_st", height = 225),
                                       plotOutput("ec50_plot", height = 225))),
+                 # CRISPR plots
                  tags$h4("CRISPR:"),
                  tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-out on viability - ",
                                 "(lower score = more sensitive)")),
@@ -138,20 +139,14 @@ ui <- fluidPage(
                                       plotOutput("crispr_dens", height = 225), 
                                       plotOutput("crispr_box_ds", height = 225), 
                                       plotOutput("crispr_box_st", height = 225))),
+                 # RNAi plots
                  tags$h4("RNAi:"),
                  tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-down on viability - ",
                                 "(lower scores = more sensitive)")),
                  fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%"),
                                       plotOutput("rnai_dens", height = 225), 
                                       plotOutput("rnai_box_ds", height = 225), 
-                                      plotOutput("rnai_box_st", height = 225))),
-                 
-                 # metrics table
-                 br(),br(),
-                 tags$h3("Ranking metrics:"),
-                 tags$h5("Select a row to plot metrics"),
-                 div(DT::dataTableOutput("celltype_dt"),
-                     style = "font-size:90%")
+                                      plotOutput("rnai_box_st", height = 225)))
         ),
         tabPanel("Drugs")
     )
@@ -161,8 +156,6 @@ ui <- fluidPage(
 ################################### Server ####################################
 server <- function(input, output, session) {
     
-    load_data()
-    
     # icon
     output$icon <- renderImage(list(src = "../hexagons/jelly.png",
                                     height = "95px", width = "85px"), 
@@ -170,34 +163,64 @@ server <- function(input, output, session) {
     
     # cell type comparison choice UI
     output$comparison_choice <- renderUI({
-        selectInput('comparison', 'Celltype comparison:', names(data$ct_diff), "B-cell vs solid tumor")
+        selectInput('comparison', 'Celltype comparison:', 
+                    names(data$ct_diff),
+                    "B-cell vs solid tumor")
     })
 
     # observe cell type comparison choice
     observeEvent(input$comparison, {
         if (is_empty(input$comparison)) return(NULL)
         reactvals$ct_summary_df <- data$ct_diff[[input$comparison]]
+        reactvals$ct_summary_sel <- reactvals$ct_summary_df
         reactvals$ct_sel <- ifelse(grepl("B-cell", input$comparison),
                                    "B-cell", "T-cell")
         print(input$comparison)
         print(reactvals$ct_sel)
     })
     
+    # scatter plot of average sensitivty scores per compound
+    output$sens_scatter <- renderPlot({
+        selmetric <- "DSS3" ## tmp
+        plotdat <- reactvals$ct_summary_df %>%
+            select_if(grepl(paste0(selmetric, "_avg"), names(.))) %>%
+            distinct()
+        if (is_empty(plotdat)) return(NULL)
+        # x <- plotdat[, grep(reactvals$ct_sel, colnames(plotdat)), drop=T]
+        # y <- plotdat[, grep("ST", colnames(plotdat)), drop=T]
+        # plotdat <- data.frame(x = x,
+        #                       y = y)
+        print(str(plotdat))
+        plotdat %>%
+            ggplot(aes(x=`DSS3_avg_B-cell`, y=DSS3_avg_ST)) +
+            geom_point(color = "#71448199", size = 2) +
+            scale_x_continuous(name = paste0("Average ", selmetric, " score: ", reactvals$ct_sel)) +
+            scale_y_continuous(name = paste0("Average ", selmetric, " score: ", "solid tumor")) +
+            theme_bw(base_size = 18) +
+            theme()
+    })
+    
+    #  selecting summary table rows from scatter brushing
+    observeEvent(input$scatter_brush, {
+        reactvals$ct_summary_sel <- reactvals$ct_summary_df %>%
+            brushedPoints(input$scatter_brush)
+    })
+    
     # feature info table for feature/row selection
     output$celltype_dt <- DT::renderDataTable({
-        ct_summary_df <- reactvals$ct_summary_df %>%
+        ct_summary_sel <- reactvals$ct_summary_sel %>%
             mutate_if(is.numeric, round, digits = 3)
-        if (is.null(ct_summary_df)) return(NULL)
+        if (is.null(ct_summary_sel)) return(NULL)
         DT::datatable(
-            data = ct_summary_df, 
+            data = ct_summary_sel, 
             rownames = F,
             selection = list(mode = 'single', target = "row", selected = 1),
             options = list(columnDefs = list(list(
-                targets = 0:(ncol(ct_summary_df)-1),
+                targets = 0:(ncol(ct_summary_sel)-1),
                 render = JS(
                     "function(data, type, row, meta) {",
-                    "return type === 'display' && data.length > 20 ?",
-                    "'<span title=\"' + data + '\">' + data.substr(0, 20) + '...</span>' : data;",
+                    "return type === 'display' && data.length > 30 ?",
+                    "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
                     "}")
             ))),
             callback = JS('table.page(3).draw(false);')
@@ -207,15 +230,15 @@ server <- function(input, output, session) {
     # select gene
     observeEvent(input$celltype_dt_rows_selected, {
         if (is_empty(input$celltype_dt_rows_selected)) return(NULL)
-        df <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]
+        df <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]
         reactvals$gene <- df$Gene
         print(reactvals$gene)
     })
     
     # metrics overview
     output$metrics_overview <- renderPlot({
-        print(head(reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]))
-        plotdat <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ] %>%
+        print(head(reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]))
+        plotdat <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, 1:8] %>%
             gather("metric", "rank", -c(1:3)) %>%
             mutate(rank = rank*100, 
                    metric = factor(metric, 
