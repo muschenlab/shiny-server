@@ -95,6 +95,7 @@ ui <- fluidPage(
         tabPanel("Compounds",
                  
                  # celltype comparison choice
+                 tags$h3("Celltype comparison:"),
                  div(style = "font-size:13px;", uiOutput("comparison_choice")),
                  tags$h5(paste0("Select celltype comparison of interest, ",
                                 "then select a row from the table below to explore sensitivity metrics")),
@@ -153,12 +154,18 @@ ui <- fluidPage(
                  tags$h4("Drugs:"),
                  div(DT::dataTableOutput("cl_drugdat"),
                      style = "font-size:90%"),
+                 downloadButton("dl_cl_drug_xls", label = "XLS",
+                                style = "font-size:12px;height:30px;padding:5px;"),
                  tags$h4("CRISPR:"),
                  div(DT::dataTableOutput("cl_crisprdat"),
                      style = "font-size:90%"),
+                 downloadButton("dl_cl_rnai_xls", label = "XLS",
+                                style = "font-size:12px;height:30px;padding:5px;"),
                  tags$h4("RNAi:"),
                  div(DT::dataTableOutput("cl_rnaidat"),
-                     style = "font-size:90%")
+                     style = "font-size:90%"),
+                 downloadButton("dl_cl_crispr_xls", label = "XLS",
+                                style = "font-size:12px;height:30px;padding:5px;")
                  
         ),
         tabPanel("CRISPR",
@@ -177,7 +184,7 @@ server <- function(input, output, session) {
     
     # cell type comparison choice UI
     output$comparison_choice <- renderUI({
-        selectInput('comparison', 'Celltype comparison:', 
+        selectInput('comparison', NULL, 
                     names(data$ct_diff),
                     "B-cell vs solid tumor")
     })
@@ -208,6 +215,7 @@ server <- function(input, output, session) {
         if (is_empty(plotdat)) return(NULL)
         colvar <- c(paste0("`", selmetric, "_", ct, "`"), 
                     paste0("`", selmetric, "_ST`"))
+        selmetric <- sub("(.+)_avg", "\\1", selmetric)
         plotdat %>%
             ggplot(aes_string(x=colvar[[1]], y=colvar[[2]])) +
             geom_point(color = "#71448199", size = 2) +
@@ -362,6 +370,25 @@ server <- function(input, output, session) {
         gen_densplot(plotdat, "DSS1", "disease", xlab = "DSS1 score")
     })
     
+    # download expr plot as png
+    output$dl_expr_plot_png <- downloadHandler(
+        filename = function() {
+            exprsum <- get_expr_summary()
+            if (length(unique(exprsum$gene_name)) > 2) {
+                genes <- "multiple_genes"
+            } else {
+                genes <- paste0(unique(exprsum$gene_name), collapse = "_")
+            }
+            paste0("Expression_level_", genes, ".png")
+        },
+        content = function(file) {
+            plot <- sel_expr_plot()
+            dims <- get_dims()
+            ggsave(plot = plot, filename = file, units = "mm",
+                   height = dims$h/3, width = dims$w/3)
+        }
+    )
+    
     # DSS1 boxplot by disease
     output$dss_box_ds <- renderPlot({
         plotdat <- get_drug_metrics() 
@@ -399,7 +426,7 @@ server <- function(input, output, session) {
                          cell_line = pData(data$crispr_es)$stripped_cell_line_name,
                          disease = pData(data$crispr_es)$disease,
                          subtype = pData(data$crispr_es)$subtype,
-                         crispr_effect = exprs(data$crispr_es)[geneidx, ]) %>%
+                         crispr_effect = round(exprs(data$crispr_es)[geneidx, ],3)) %>%
             mutate(disease = factor(disease, levels = levels(data$crispr_es$disease)),
                    subtype = factor(subtype, levels = levels(data$crispr_es$subtype)))
         if (is_empty(df)) return(NULL)
@@ -445,7 +472,7 @@ server <- function(input, output, session) {
                    cell_line = pData(data$rnai_es)$stripped_cell_line_name ,
                    disease = pData(data$rnai_es)$disease,
                    subtype = pData(data$rnai_es)$subtype,
-                   rnai_effect = exprs(data$rnai_es)[geneidx, ]) %>%
+                   rnai_effect = round(exprs(data$rnai_es)[geneidx, ], 3)) %>%
             mutate(disease = factor(disease, levels = levels(data$rnai_es$disease)),
                    subtype = factor(subtype, levels = levels(data$rnai_es$subtype)))
     })
@@ -492,18 +519,27 @@ server <- function(input, output, session) {
         DT::datatable(
             data = dat, 
             rownames = F,
-            options = list(
-                columnDefs = list(list(
-                    targets = 0:(ncol(dat)-1),
-                    render = JS(
-                        "function(data, type, row, meta) {",
-                        "return type === 'display' && data.length > 30 ?",
-                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-                        "}"))),
-                lengthMenu = c(5, 10, 25), pageLength = 5),
-            callback = JS('table.page(3).draw(false);')
-        )
+            options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
     })
+    output$dl_cl_drug_xls <- downloadHandler(
+        filename = function() {
+            ct_summary_df <- get_ct_summary_df()
+            ct <- get_ct()
+            cpd <- unique(ct_summary_df$Compound)
+            cpd <- sub("(\\(.+\\))", "", cpd)
+            cpd <- sub("\\:", "_", cpd)
+            paste0("Drug_metrics_", cpd, "_", ct,  ".xlsx")
+        },
+        content = function(file) {
+            ct_summary_df <- get_ct_summary_df()
+            ct <- get_ct()
+            dat <- data$ctd_metrics %>%
+                dplyr::filter(treatmentid == unique(ct_summary_df$Compound)) %>%
+                dplyr::filter(disease %in% c(ct)) %>%
+                select(EC50, DSS1, DSS2, DSS3, minc, maxc, slope, sampleid, treatmentid, disease, subtype)
+            writexl::write_xlsx(dat, path=file)
+    })
+    
     
     # cell-line level drug data
     output$cl_rnaidat <- DT::renderDataTable({
@@ -514,18 +550,21 @@ server <- function(input, output, session) {
         DT::datatable(
             data = dat, 
             rownames = F,
-            options = list(
-                columnDefs = list(list(
-                    targets = 0:(ncol(dat)-1),
-                    render = JS(
-                        "function(data, type, row, meta) {",
-                        "return type === 'display' && data.length > 30 ?",
-                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-                        "}"))),
-                lengthMenu = c(5, 10, 25), pageLength = 5),
-            callback = JS('table.page(3).draw(false);')
-        )
+            options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
     })
+    output$dl_cl_rnai_xls <- downloadHandler(
+        filename = function() {
+            ct <- get_ct()
+            ct_summary_df <- get_ct_summary_df()
+            gene <- unique(ct_summary_df$Gene)
+            paste0("RNAi_metrics_", gene, "_", ct,  ".xlsx")
+        },
+        content = function(file) {
+            ct <- get_ct()
+            dat <- get_rnai_dat() %>%
+                dplyr::filter(disease %in% c(ct, "Solid")) 
+            writexl::write_xlsx(dat, path=file)
+        })
     
     # cell-line level drug data
     output$cl_crisprdat <- DT::renderDataTable({
@@ -536,18 +575,21 @@ server <- function(input, output, session) {
         DT::datatable(
             data = dat, 
             rownames = F,
-            options = list(
-                columnDefs = list(list(
-                    targets = 0:(ncol(dat)-1),
-                    render = JS(
-                        "function(data, type, row, meta) {",
-                        "return type === 'display' && data.length > 30 ?",
-                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-                        "}"))),
-                lengthMenu = c(5, 10, 25), pageLength = 5),
-            callback = JS('table.page(3).draw(false);')
-        )
+            options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
     })
+    output$dl_cl_crispr_xls <- downloadHandler(
+        filename = function() {
+            ct <- get_ct()
+            ct_summary_df <- get_ct_summary_df()
+            gene <- unique(ct_summary_df$Gene)
+            paste0("CRISPR_metrics_", gene, "_", ct,  ".xlsx")
+        },
+        content = function(file) {
+            ct <- get_ct()
+            dat <- get_crispr_dat() %>%
+                dplyr::filter(disease %in% c(ct, "Solid")) 
+            writexl::write_xlsx(dat, path=file)
+        })
     
 }
 
