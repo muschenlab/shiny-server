@@ -92,13 +92,12 @@ ui <- fluidPage(
     
     # main UI
     tabsetPanel(
-        tabPanel("Summary",
-                 tags$h3("Celltype dependency summary metrics"),
-                 tags$h5(paste0("Select celltype comparison of interest, ",
-                                "then select a row from the table at the bottom to plot sensitivity metrics")),
+        tabPanel("Compounds",
                  
                  # celltype comparison choice
                  div(style = "font-size:13px;", uiOutput("comparison_choice")),
+                 tags$h5(paste0("Select celltype comparison of interest, ",
+                                "then select a row from the table below to explore sensitivity metrics")),
                  
                  # scatter plot of average
                  tags$h3("Average sensitivity per compound:"),
@@ -146,9 +145,24 @@ ui <- fluidPage(
                  fluidRow(splitLayout(cellWidths = c("25%", "20%", "20%"),
                                       plotOutput("rnai_dens", height = 225), 
                                       plotOutput("rnai_box_ds", height = 225), 
-                                      plotOutput("rnai_box_st", height = 225)))
+                                      plotOutput("rnai_box_st", height = 225))),
+                 
+                 # data for individual cell lines
+                 br(),br(),
+                 tags$h3("Cell-line level data:"),
+                 tags$h4("Drugs:"),
+                 div(DT::dataTableOutput("cl_drugdat"),
+                     style = "font-size:90%"),
+                 tags$h4("CRISPR:"),
+                 div(DT::dataTableOutput("cl_crisprdat"),
+                     style = "font-size:90%"),
+                 tags$h4("RNAi:"),
+                 div(DT::dataTableOutput("cl_rnaidat"),
+                     style = "font-size:90%")
+                 
         ),
-        tabPanel("Drugs")
+        tabPanel("CRISPR",
+                 tags$h3("under construction"))
     )
 )
 
@@ -168,48 +182,66 @@ server <- function(input, output, session) {
                     "B-cell vs solid tumor")
     })
 
-    # observe cell type comparison choice
-    observeEvent(input$comparison, {
-        if (is_empty(input$comparison)) return(NULL)
-        reactvals$ct_summary_df <- data$ct_diff[[input$comparison]]
-        reactvals$ct_summary_sel <- reactvals$ct_summary_df
-        reactvals$ct_sel <- ifelse(grepl("B-cell", input$comparison),
-                                   "B-cell", "T-cell")
-        print(input$comparison)
-        print(reactvals$ct_sel)
+    # # observe cell type comparison choice
+    # observeEvent(input$comparison, {
+    #     if (is_empty(input$comparison)) return(NULL)
+    #     reactvals$ct_summary_df <- data$ct_diff[[input$comparison]]
+    #     reactvals$ct_summary_sel <- reactvals$ct_summary_df
+    #     reactvals$ct_sel <- ifelse(grepl("B-cell", input$comparison),
+    #                                "B-cell", "T-cell")
+    #     print(input$comparison)
+    #     print(reactvals$ct_sel)
+    # })
+    
+    # lazy tmp way to do this before I fix custom ct
+    get_ct <- reactive({
+        ifelse(grepl("B-cell", input$comparison), "B-cell", "T-cell") 
     })
     
     # scatter plot of average sensitivty scores per compound
     output$sens_scatter <- renderPlot({
-        selmetric <- "DSS3" ## tmp
-        plotdat <- reactvals$ct_summary_df %>%
-            select_if(grepl(paste0(selmetric, "_avg"), names(.))) %>%
+        selmetric <- "DSS3_avg" ## tmp
+        ct <- get_ct()
+        plotdat <- data$ct_diff[[input$comparison]] %>%
+            select_if(grepl(selmetric, names(.))) %>%
             distinct()
         if (is_empty(plotdat)) return(NULL)
-        # x <- plotdat[, grep(reactvals$ct_sel, colnames(plotdat)), drop=T]
-        # y <- plotdat[, grep("ST", colnames(plotdat)), drop=T]
-        # plotdat <- data.frame(x = x,
-        #                       y = y)
-        print(str(plotdat))
+        colvar <- c(paste0("`", selmetric, "_", ct, "`"), 
+                    paste0("`", selmetric, "_ST`"))
         plotdat %>%
-            ggplot(aes(x=`DSS3_avg_B-cell`, y=DSS3_avg_ST)) +
+            ggplot(aes_string(x=colvar[[1]], y=colvar[[2]])) +
             geom_point(color = "#71448199", size = 2) +
-            scale_x_continuous(name = paste0("Average ", selmetric, " score: ", reactvals$ct_sel)) +
+            geom_abline() +
+            scale_x_continuous(name = paste0("Average ", selmetric, " score: ", ct)) +
             scale_y_continuous(name = paste0("Average ", selmetric, " score: ", "solid tumor")) +
             theme_bw(base_size = 18) +
             theme()
     })
     
-    #  selecting summary table rows from scatter brushing
-    observeEvent(input$scatter_brush, {
-        reactvals$ct_summary_sel <- reactvals$ct_summary_df %>%
-            brushedPoints(input$scatter_brush)
-    })
+    ### This for some reason causes an error whereby info is shared between user sessions
+    ### doesn't appear to occur outside of observeEvent functions??
+    # #  selecting summary table rows from scatter brushing
+    # observeEvent(input$scatter_brush, {
+    #     reactvals$ct_summary_sel <- reactvals$ct_summary_df %>%
+    #         brushedPoints(input$scatter_brush)
+    # })
+    
+    get_ct_dt_data <- reactive({
+        if (is_empty(input$scatter_brush)) {
+            data$ct_diff[[input$comparison]] %>%
+                select_at(1:9) %>%
+                mutate_if(is.numeric, round, digits = 3)
+        } else {
+            data$ct_diff[[input$comparison]] %>%
+                brushedPoints(input$scatter_brush) %>%
+                select_at(1:9) %>%
+                mutate_if(is.numeric, round, digits = 3)
+        }
+    }) 
     
     # feature info table for feature/row selection
     output$celltype_dt <- DT::renderDataTable({
-        ct_summary_sel <- reactvals$ct_summary_sel %>%
-            mutate_if(is.numeric, round, digits = 3)
+        ct_summary_sel <- get_ct_dt_data()
         if (is.null(ct_summary_sel)) return(NULL)
         DT::datatable(
             data = ct_summary_sel, 
@@ -227,23 +259,38 @@ server <- function(input, output, session) {
         )
     })
     
-    # select gene
-    observeEvent(input$celltype_dt_rows_selected, {
-        if (is_empty(input$celltype_dt_rows_selected)) return(NULL)
-        df <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]
-        reactvals$gene <- df$Gene
-        print(reactvals$gene)
+    ### This for some reason causes an error whereby info is shared between user sessions
+    ### doesn't appear to occur outside of observeEvent functions??
+    # # select gene
+    # observeEvent(input$celltype_dt_rows_selected, {
+    #     if (is_empty(input$celltype_dt_rows_selected)) return(NULL)
+    #     df <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]
+    #     reactvals$gene <- df$Gene
+    #     print(reactvals$gene)
+    # })
+    
+    get_ct_summary_df <- reactive({
+        if (is_empty(input$scatter_brush)) {
+            data$ct_diff[[input$comparison]] %>%
+                slice(input$celltype_dt_rows_selected)
+        } else {
+            data$ct_diff[[input$comparison]] %>%
+                brushedPoints(input$scatter_brush) %>%
+                slice(input$celltype_dt_rows_selected)
+        }
     })
     
     # metrics overview
     output$metrics_overview <- renderPlot({
-        print(head(reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]))
-        plotdat <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, 1:8] %>%
+        plotdat <- get_ct_summary_df() %>%
+            select_at(1:9) %>%
             gather("metric", "rank", -c(1:3)) %>%
             mutate(rank = rank*100, 
                    metric = factor(metric, 
                                    levels = c("Avg_rank","dDSS1_rank","dDSS2_rank","dDSS3_rank","dRNAi_rank","dCRISPR_rank"),
                                    labels = c("overall","dDSS1","dDSS2","dDSS3","dRNAi","dCRISPR")))
+        cpd <- unique(plotdat$Compound)
+        gene <- unique(plotdat$Gene)
         ggplot(plotdat, aes(x=metric, y=rank)) +
             geom_point(size=4, color="#714481ff", shape=21) +
             coord_flip(clip="off") +
@@ -257,22 +304,24 @@ server <- function(input, output, session) {
                   axis.ticks.y = element_blank(),
                   axis.line.x = element_line(),
                   panel.grid.major.y = element_line(size = 2),
-                  plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
+                  plot.margin = margin(0.5,0.5,0.5,0.5, "cm")) +
+            ggtitle(paste0("Compound: ", cpd, "; Gene: ", gene))
     })
     
     # get drug metrics for selected row
     get_drug_metrics <- reactive({
-        ct_summary_df <- reactvals$ct_summary_df[input$celltype_dt_rows_selected, ]
+        ct_summary_df <- get_ct_summary_df()
+        ct <- get_ct()
         if (nrow(ct_summary_df) < 1) return(NULL)
         metrics <- data$ctd_metrics %>%
-            filter(treatmentid == ct_summary_df$Compound)
+            dplyr::filter(treatmentid == unique(ct_summary_df$Compound))
         if (is_empty(metrics)) return(NULL)
-        if (reactvals$ct_sel == "B-cell") {
+        if (ct == "B-cell") {
             fctlvls <- rev(c("Solid","B-cell","T-cell","Myeloma","Myeloid"))
             metrics <- metrics %>% 
                 mutate(disease = factor(disease, levels = fctlvls))
         }
-        if (reactvals$ct_sel == "T-cell") {
+        if (ct == "T-cell") {
             fctlvls <- rev(c("Solid","T-cell","B-cell","Myeloma","Myeloid"))
             metrics <- metrics %>% 
                 mutate(disease = factor(disease, levels = fctlvls))
@@ -283,18 +332,19 @@ server <- function(input, output, session) {
     # subtype factor level formatting
     get_drug_subtype_metrics <- reactive({
         plotdat <- get_drug_metrics() 
+        ct <- get_ct()
         if (is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
-            mutate(st = ifelse(disease == reactvals$ct_sel,
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
+            mutate(st = ifelse(disease == ct,
                                as.character(subtype), as.character(disease))) %>%
-            filter(!is.na(st))
-        if (reactvals$ct_sel == "B-cell") {
+            dplyr::filter(!is.na(st))
+        if (ct == "B-cell") {
             plotdat <- plotdat %>%
                 mutate(st = factor(st, levels = rev(c("Solid","B-ALL","CLL","Mantle cell",
                                                       "Burkitts","DLBCL","other NHL", "Hodgkin"))))
         }
-        if (reactvals$ct_sel == "T-cell") {
+        if (ct == "T-cell") {
             plotdat <- plotdat %>%
                 mutate(st = factor(st, levels = rev(c("Solid","T-ALL","T-cell lymphoma"))))
         }
@@ -304,9 +354,10 @@ server <- function(input, output, session) {
     # DSS1 density plot by disease
     output$dss_dens <- renderPlot({
         plotdat <- get_drug_metrics() 
+        ct <- get_ct()
         if (is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
             droplevels()
         gen_densplot(plotdat, "DSS1", "disease", xlab = "DSS1 score")
     })
@@ -316,7 +367,7 @@ server <- function(input, output, session) {
         plotdat <- get_drug_metrics() 
         if (is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
-            filter(!is.na(disease)) %>%
+            dplyr::filter(!is.na(disease)) %>%
             droplevels()
         gen_boxplot(plotdat, "disease", "DSS1", ylab = "DSS1 score") 
     })
@@ -341,12 +392,14 @@ server <- function(input, output, session) {
     
     # get crispr data
     get_crispr_dat <- reactive({
-        gene <- reactvals$ct_summary_sel[input$celltype_dt_rows_selected, ]$Gene
-        # gene <- reactvals$gene
+        ct_summary_df <- get_ct_summary_df()
+        gene <- unique(ct_summary_df$Gene)
         geneidx <- which(fData(data$crispr_es)$genesymbol == gene)
-        df <- data.frame(crispr_effect = exprs(data$crispr_es)[geneidx, ], 
+        df <- data.frame(depmap_id = pData(data$crispr_es)$DepMap_ID,
+                         cell_line = pData(data$crispr_es)$stripped_cell_line_name,
                          disease = pData(data$crispr_es)$disease,
-                         subtype = pData(data$crispr_es)$subtype) %>%
+                         subtype = pData(data$crispr_es)$subtype,
+                         crispr_effect = exprs(data$crispr_es)[geneidx, ]) %>%
             mutate(disease = factor(disease, levels = levels(data$crispr_es$disease)),
                    subtype = factor(subtype, levels = levels(data$crispr_es$subtype)))
         if (is_empty(df)) return(NULL)
@@ -355,8 +408,9 @@ server <- function(input, output, session) {
     
     # CRISPR density plot by disease
     output$crispr_dens <- renderPlot({
+        ct <- get_ct()
         plotdat <- get_crispr_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
             droplevels()
         gen_densplot(plotdat, "crispr_effect", "disease", xlab = "CRISPR effect score")
     })
@@ -364,38 +418,43 @@ server <- function(input, output, session) {
     # CRISPR boxplot by disease
     output$crispr_box_ds <- renderPlot({
         plotdat <- get_crispr_dat() %>%
-            filter(!is.na(disease)) %>%
+            dplyr::filter(!is.na(disease)) %>%
             droplevels()
         gen_boxplot(plotdat, "disease", "crispr_effect", ylab = "CRISPR effect score")
     })
     
     # CRISPR boxplot by subtype
     output$crispr_box_st <- renderPlot({
+        ct <- get_ct()
         plotdat <- get_crispr_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
-            mutate(st = ifelse(disease == reactvals$ct_sel,
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
+            mutate(st = ifelse(disease == ct,
                                as.character(subtype), as.character(disease))) %>%
             mutate(st = factor(st, levels = c(levels(data$crispr_es$subtype), "Solid"))) %>%
-            filter(!is.na(st)) %>%
+            dplyr::filter(!is.na(st)) %>%
             droplevels()
         gen_boxplot(plotdat, "st", "crispr_effect", ylab = "CRISPR effect score")
     })
     
     # get RNAi data
     get_rnai_dat <- reactive({
-        gene <- reactvals$gene
+        ct_summary_df <- get_ct_summary_df()
+        gene <- unique(ct_summary_df$Gene)
         geneidx <- which(fData(data$rnai_es)$genesymbol == gene)
-        data.frame(rnai_effect = exprs(data$rnai_es)[geneidx, ], 
+        data.frame(depmap_id = pData(data$rnai_es)$DepMap_ID,
+                   cell_line = pData(data$rnai_es)$stripped_cell_line_name ,
                    disease = pData(data$rnai_es)$disease,
-                   subtype = pData(data$rnai_es)$subtype) %>%
+                   subtype = pData(data$rnai_es)$subtype,
+                   rnai_effect = exprs(data$rnai_es)[geneidx, ]) %>%
             mutate(disease = factor(disease, levels = levels(data$rnai_es$disease)),
                    subtype = factor(subtype, levels = levels(data$rnai_es$subtype)))
     })
     
     # RNAi density plot by disease
     output$rnai_dens <- renderPlot({
+        ct <- get_ct()
         plotdat <- get_rnai_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
             droplevels()
         gen_densplot(plotdat, "rnai_effect", "disease", xlab = "RNAi effect score")
     })
@@ -403,21 +462,91 @@ server <- function(input, output, session) {
     # RNAi boxplot by disease
     output$rnai_box_ds <- renderPlot({
         plotdat <- get_rnai_dat() %>%
-            filter(!is.na(disease)) %>%
+            dplyr::filter(!is.na(disease)) %>%
             droplevels()
         gen_boxplot(plotdat, "disease", "rnai_effect", ylab = "RNAi effect score")
     })
     
     # RNAi boxplot by subtype
     output$rnai_box_st <- renderPlot({
+        ct <- get_ct()
         plotdat <- get_rnai_dat() %>%
-            filter(disease %in% c(reactvals$ct_sel, "Solid")) %>%
-            mutate(st = ifelse(disease == reactvals$ct_sel,
+            dplyr::filter(disease %in% c(ct, "Solid")) %>%
+            mutate(st = ifelse(disease == ct,
                                as.character(subtype), as.character(disease))) %>%
             mutate(st = factor(st, levels = c(levels(data$rnai_es$subtype), "Solid"))) %>%
-            filter(!is.na(st)) %>%
+            dplyr::filter(!is.na(st)) %>%
             droplevels()
         gen_boxplot(plotdat, "st", "rnai_effect", ylab = "RNAi effect score")
+    })
+    
+    # cell-line level drug data
+    output$cl_drugdat <- DT::renderDataTable({
+        ct_summary_df <- get_ct_summary_df()
+        ct <- get_ct()
+        dat <- data$ctd_metrics %>%
+            dplyr::filter(treatmentid == unique(ct_summary_df$Compound)) %>%
+            dplyr::filter(disease %in% c(ct)) %>%
+            select(EC50, DSS1, DSS2, DSS3, minc, maxc, slope, sampleid, treatmentid, disease, subtype)
+        if (is.null(dat)) return(NULL)
+        DT::datatable(
+            data = dat, 
+            rownames = F,
+            options = list(
+                columnDefs = list(list(
+                    targets = 0:(ncol(dat)-1),
+                    render = JS(
+                        "function(data, type, row, meta) {",
+                        "return type === 'display' && data.length > 30 ?",
+                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+                        "}"))),
+                lengthMenu = c(5, 10, 25), pageLength = 5),
+            callback = JS('table.page(3).draw(false);')
+        )
+    })
+    
+    # cell-line level drug data
+    output$cl_rnaidat <- DT::renderDataTable({
+        ct <- get_ct()
+        dat <- get_rnai_dat() %>%
+            dplyr::filter(disease %in% c(ct)) 
+        if (is.null(dat)) return(NULL)
+        DT::datatable(
+            data = dat, 
+            rownames = F,
+            options = list(
+                columnDefs = list(list(
+                    targets = 0:(ncol(dat)-1),
+                    render = JS(
+                        "function(data, type, row, meta) {",
+                        "return type === 'display' && data.length > 30 ?",
+                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+                        "}"))),
+                lengthMenu = c(5, 10, 25), pageLength = 5),
+            callback = JS('table.page(3).draw(false);')
+        )
+    })
+    
+    # cell-line level drug data
+    output$cl_crisprdat <- DT::renderDataTable({
+        ct <- get_ct()
+        dat <- get_crispr_dat() %>%
+            dplyr::filter(disease %in% c(ct)) 
+        if (is.null(dat)) return(NULL)
+        DT::datatable(
+            data = dat, 
+            rownames = F,
+            options = list(
+                columnDefs = list(list(
+                    targets = 0:(ncol(dat)-1),
+                    render = JS(
+                        "function(data, type, row, meta) {",
+                        "return type === 'display' && data.length > 30 ?",
+                        "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+                        "}"))),
+                lengthMenu = c(5, 10, 25), pageLength = 5),
+            callback = JS('table.page(3).draw(false);')
+        )
     })
     
 }
