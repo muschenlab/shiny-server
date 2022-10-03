@@ -256,24 +256,24 @@ server <- function(input, output, session) {
         genes <- unique(drug_summary$genesymbol)
         genes <- genes[!is.na(genes)]
         crispr <- data$crispr_es[which(fData(data$crispr_es)$genesymbol %in% genes), ]
-        ct1idx <- which(crispr$disease == ct1)
-        ct2idx <- which(crispr$disease == ct2)
+        ct1idx <- which(crispr$disease == reactvals$ct1)
+        ct2idx <- which(crispr$disease == reactvals$ct2)
         crispr <- data.frame(genesymbol = fData(crispr)$genesymbol,
                              avCRISPR_1 = rowMeans(exprs(crispr)[, ct1idx], na.rm=T),
                              avCRISPR_2 = rowMeans(exprs(crispr)[, ct2idx], na.rm=T)) %>%
             mutate(dCRISPR = avCRISPR_1 - avCRISPR_2) %>%
             mutate(dCRISPR_rank = rank(-dCRISPR)/length(dCRISPR))
         rnai <- data$rnai_es[which(fData(data$rnai_es)$genesymbol %in% genes), ]
-        ct1idx <- which(rnai$disease == ct1)
-        ct2idx <- which(rnai$disease == ct2)
+        ct1idx <- which(rnai$disease == reactvals$ct1)
+        ct2idx <- which(rnai$disease == reactvals$ct2)
         rnai <- data.frame(genesymbol = fData(rnai)$genesymbol,
                            avRNAi_1 = rowMeans(exprs(rnai)[, ct1idx], na.rm=T),
                            avRNAi_2 = rowMeans(exprs(rnai)[, ct2idx], na.rm=T)) %>%
             mutate(dRNAi = avRNAi_1 - avRNAi_2) %>%
             mutate(dRNAi_rank = rank(-dRNAi)/length(dRNAi))
         comb <- merge(crispr, rnai, by=c("genesymbol"), all=T)
-        colnames(comb) <- sub("1", ct1, colnames(comb))
-        colnames(comb) <- sub("2", ct2, colnames(comb))
+        colnames(comb) <- sub("1", reactvals$ct1, colnames(comb))
+        colnames(comb) <- sub("2", reactvals$ct2, colnames(comb))
         comb <- merge(drug_summary, comb, by=c("genesymbol"), all=T)
         comb <- comb[, c(grep("treat|gene", colnames(comb)), grep("_rank", colnames(comb)),
                          grep("^d[A-Za-z0-9]+$", colnames(comb)), grep("^av", colnames(comb)))]
@@ -561,9 +561,11 @@ server <- function(input, output, session) {
     output$cl_crisprdat <- DT::renderDataTable({
         dat <- get_crispr_dat() %>%
             dplyr::filter(disease %in% reactvals$ct1) 
-        if (is.null(dat)) return(NULL)
+        if (is_empty(dat)) return(NULL)
         if (!is_empty(input$crispr_dens_brush)) {
-            dat <- dat %>% brushedPoints(input$crispr_dens_brush, yvar=NA)
+            brushinfo <- input$crispr_dens_brush
+            dat <- dat %>% filter(crispr_effect > brushinfo$xmin &
+                                  crispr_effect < brushinfo$xmax)
         }
         DT::datatable(
             data = dat, 
