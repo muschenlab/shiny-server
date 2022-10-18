@@ -64,21 +64,27 @@ gen_densplot <- function(plotdat, x, y, xlab, ylab = "Frequency") {
         scale_fill_manual(values=pickcols(jellypal, length(levels(plotdat[,y]))))
 }
 
-# function just to print plain labels on log scale axis
+# print plain labels on log scale axis
 plain <- function(x,...) {
     format(x, ..., scientific = FALSE, drop0trailing = TRUE)
 }
 
-# pallette function
+# palette function
 jellypal <- c("#714481cc","#712e7ccc","#9b6295cc",
               "#b36f8ecc","#b9869fcc","#d49aa2cc",
               "#a2b2a8cc","#a7c3c6cc","#7d8b99cc",
               "#528199cc","#426284cc",
               "#eccad3cc","#eed9e0ff","#d0e6ea99")
-    
 pickcols <- function(pal, n) {
     idx <- c(round(seq(1, length(pal), length(pal)/(n-1))), length(pal))
     pal[idx]
+}
+
+# run t-test only if sufficient observations
+filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "disease") {
+    if(any(table(x$disease) < 2)) return(NA)
+    tres <- t.test(reformulate(grouping_var, metric), x)
+    return(tres[[stat]])
 }
 
 ##################################### UI ######################################
@@ -222,7 +228,26 @@ server <- function(input, output, session) {
         print("get_drug_summary")
         drug_metrics <- get_drug_metrics() ## replace actual disease name with just "ct1"/"ct2" to make column names generic??
         if (is_empty(drug_metrics)) return(NULL)
-        drug_summary <- drug_metrics %>%
+        # drug_summary <- drug_metrics %>%
+        #     group_by(disease, treatmentid) %>%
+        #     summarise(avEC50 = mean(EC50, na.rm=T),
+        #               avDSS1 = mean(DSS1, na.rm=T),
+        #               avDSS2 = mean(DSS2, na.rm=T),
+        #               avDSS3 = mean(DSS3, na.rm=T),
+        #               genesymbol = unique(gene_symbol_of_protein_target)) %>%
+        #     pivot_wider(names_from = disease,
+        #                 values_from = c(avEC50, avDSS1, avDSS2, avDSS3)) %>% 
+        #     mutate(dEC50 = .[[3]] / .[[4]], 
+        #            dDSS1 = .[[5]] - .[[6]], 
+        #            dDSS2 = .[[7]] - .[[8]], 
+        #            dDSS3 = .[[9]] - .[[10]], 
+        #            .before = 3) %>%
+        #     mutate(dEC50_rank = rank(-dEC50)/length(dEC50),
+        #            dDSS1_rank = rank(dDSS1)/length(dDSS1),
+        #            dDSS2_rank = rank(dDSS2)/length(dDSS2),
+        #            dDSS3_rank = rank(dDSS3)/length(dDSS3),
+        #            .before=3)
+        av <- drug_metrics %>%
             group_by(disease, treatmentid) %>%
             summarise(avEC50 = mean(EC50, na.rm=T),
                       avDSS1 = mean(DSS1, na.rm=T),
@@ -230,17 +255,25 @@ server <- function(input, output, session) {
                       avDSS3 = mean(DSS3, na.rm=T),
                       genesymbol = unique(gene_symbol_of_protein_target)) %>%
             pivot_wider(names_from = disease,
-                        values_from = c(avEC50, avDSS1, avDSS2, avDSS3)) %>% 
-            mutate(dEC50 = .[[3]] / .[[4]], 
-                   dDSS1 = .[[5]] - .[[6]], 
-                   dDSS2 = .[[7]] - .[[8]], 
-                   dDSS3 = .[[9]] - .[[10]], 
-                   .before = 3) %>%
+                        values_from = c(avEC50, avDSS1, avDSS2, avDSS3))
+        stats <- drug_metrics %>%
+            select(treatmentid, gene_symbol_of_protein_target, disease, DSS1, DSS2, DSS3, EC50) %>%
+            rename(genesymbol = gene_symbol_of_protein_target) %>%
+            mutate(disease = factor(disease, levels=c(reactvals$ct1,
+                                                      reactvals$ct2))) %>%
+            nest(-c(treatmentid, genesymbol)) %>%
+            mutate(dEC50 = map_dbl(data, ~filt_ttest(.x, metric="EC50", stat="statistic")),
+                   dDSS1 = map_dbl(data, ~filt_ttest(.x, metric="DSS1", stat="statistic")),
+                   dDSS2 = map_dbl(data, ~filt_ttest(.x, metric="DSS2", stat="statistic")),
+                   dDSS3 = map_dbl(data, ~filt_ttest(.x, metric="DSS3", stat="statistic"))) %>%
             mutate(dEC50_rank = rank(-dEC50)/length(dEC50),
                    dDSS1_rank = rank(dDSS1)/length(dDSS1),
                    dDSS2_rank = rank(dDSS2)/length(dDSS2),
                    dDSS3_rank = rank(dDSS3)/length(dDSS3),
-                   .before=3)
+                   .before=3) %>%
+            select(-data)
+        drug_summary <- merge(stats, av, by = c("treatmentid","genesymbol"))
+        print(head(drug_summary))
         reactvals$drug_summary <- drug_summary
         return(drug_summary)
     })
