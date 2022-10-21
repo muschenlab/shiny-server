@@ -192,7 +192,8 @@ ui <- fluidPage(
                  tags$h5("Drag a box around points to select genes of interest"),
                  fluidRow(align="center",
                           plotOutput("crispr_scatter", height = 450, width = 450, 
-                                     brush = "crispr_scatter_brush") %>% 
+                                     brush = "crispr_scatter_brush",
+                                     hover = "crispr_scatter_hover") %>% 
                               withSpinner(color = "#D0E6EA99")),
                  verbatimTextOutput("crispr_hover_text"),
                  
