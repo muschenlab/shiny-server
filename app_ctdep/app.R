@@ -103,23 +103,23 @@ ui <- fluidPage(
     tags$style(HTML(".tabbable > .nav > li > a { color:#A7C4C6FF}")),
     tags$style(HTML(".tabbable > .nav > li[class=active] > a { color:black}")),
     
+    # celltype comparison choice
+    tags$h3("Celltype comparison:"),
+    div(style = "font-size:13px;", 
+        fluidRow(column(width=3,uiOutput("ct1_choice_ui")),
+                 column(width=3,uiOutput("ct2_choice_ui")))),
+    
     # main UI
     tabsetPanel(
         tabPanel("Compounds",
-                 
-                 # celltype comparison choice
-                 tags$h3("Celltype comparison:"),
-                 div(style = "font-size:13px;", 
-                     fluidRow(column(width=3,uiOutput("ct1_choice_ui")),
-                              column(width=3,uiOutput("ct2_choice_ui")))),
                  
                  # scatter plot of average
                  tags$h3("Average sensitivity per protein/compound:"),
                  tags$h5("Drag a box around points to select compounds of interest"),
                  fluidRow(align="center",
                           plotOutput("sens_scatter", height = 450, width = 450, 
-                                     brush = "scatter_brush")) %>% 
-                     withSpinner(color = "#D0E6EA99"),
+                                     brush = "scatter_brush") %>% 
+                              withSpinner(color = "#D0E6EA99")) ,
                  
                  # metrics table
                  br(),br(),
@@ -184,7 +184,23 @@ ui <- fluidPage(
                                 style = "font-size:12px;height:30px;padding:5px;")
         ),
         tabPanel("CRISPR",
-                 tags$h3("under construction"))
+                 
+                 # scatter plot of average
+                 tags$h3("Average CRISPR score per gene:"),
+                 tags$h5("Drag a box around points to select genes of interest"),
+                 fluidRow(align="center",
+                          plotOutput("crispr_scatter", height = 450, width = 450, 
+                                     brush = "crispr_scatter_brush") %>% 
+                              withSpinner(color = "#D0E6EA99")),
+                 
+                 # metrics table
+                 br(),br(),
+                 tags$h3("Selected genes:"),
+                 tags$h5("Select a row to plot gene dependency accross cell lines below"),
+                 div(DT::dataTableOutput("crispr_summary_dt"),
+                     style = "font-size:90%")
+                 
+                 )
     )
 )
 
@@ -209,6 +225,8 @@ server <- function(input, output, session) {
                     "Solid tumor")
     })
     
+    ################################ Compounds ################################
+    
     # subset drug metrics
     get_drug_metrics <- reactive({
         print("get_drug_metrics")
@@ -226,27 +244,8 @@ server <- function(input, output, session) {
     # generate summary data
     get_drug_summary <- reactive({
         print("get_drug_summary")
-        drug_metrics <- get_drug_metrics() ## replace actual disease name with just "ct1"/"ct2" to make column names generic??
+        drug_metrics <- get_drug_metrics() 
         if (is_empty(drug_metrics)) return(NULL)
-        # drug_summary <- drug_metrics %>%
-        #     group_by(disease, treatmentid) %>%
-        #     summarise(avEC50 = mean(EC50, na.rm=T),
-        #               avDSS1 = mean(DSS1, na.rm=T),
-        #               avDSS2 = mean(DSS2, na.rm=T),
-        #               avDSS3 = mean(DSS3, na.rm=T),
-        #               genesymbol = unique(gene_symbol_of_protein_target)) %>%
-        #     pivot_wider(names_from = disease,
-        #                 values_from = c(avEC50, avDSS1, avDSS2, avDSS3)) %>% 
-        #     mutate(dEC50 = .[[3]] / .[[4]], 
-        #            dDSS1 = .[[5]] - .[[6]], 
-        #            dDSS2 = .[[7]] - .[[8]], 
-        #            dDSS3 = .[[9]] - .[[10]], 
-        #            .before = 3) %>%
-        #     mutate(dEC50_rank = rank(-dEC50)/length(dEC50),
-        #            dDSS1_rank = rank(dDSS1)/length(dDSS1),
-        #            dDSS2_rank = rank(dDSS2)/length(dDSS2),
-        #            dDSS3_rank = rank(dDSS3)/length(dDSS3),
-        #            .before=3)
         av <- drug_metrics %>%
             group_by(disease, treatmentid) %>%
             summarise(avEC50 = mean(EC50, na.rm=T),
@@ -379,6 +378,7 @@ server <- function(input, output, session) {
     output$sel_cpd_text <- renderUI({
         plotdat <- get_sel_drugsum() 
         if(is_empty(plotdat)) return(NULL)
+        if(is_empty(input$drug_summary_dt_rows_selected)) return(NULL)
         plotdat <- plotdat %>%
             dplyr::slice(input$drug_summary_dt_rows_selected)
         cpd <- unique(plotdat$treatmentid)
@@ -393,6 +393,7 @@ server <- function(input, output, session) {
         print("metrics_overview")
         plotdat <- get_sel_drugsum() 
         if(is_empty(plotdat)) return(NULL)
+        if(is_empty(input$drug_summary_dt_rows_selected)) return(NULL)
         plotdat <- plotdat %>%
             dplyr::slice(input$drug_summary_dt_rows_selected) %>%
             select_at(1:9) %>%
@@ -422,6 +423,7 @@ server <- function(input, output, session) {
     # get drug metrics for selected row
     get_selcpd_metrics <- reactive({
         print("get_selcpd_metrics")
+        if(is_empty(input$drug_summary_dt_rows_selected)) return(NULL)
         drug_summary <- get_sel_drugsum() %>%
             slice(input$drug_summary_dt_rows_selected)
         if (is_empty(drug_summary)) return(NULL)
@@ -536,7 +538,7 @@ server <- function(input, output, session) {
         })
 
     # get crispr data
-    get_crispr_dat <- reactive({
+    get_cpd_crispr_dat <- reactive({
         cpdsum <- get_sel_drugsum()
         if(is_empty(cpdsum)) return(NULL)
         cpdsum <- cpdsum %>%
@@ -556,7 +558,7 @@ server <- function(input, output, session) {
 
     # CRISPR density plot by disease
     output$crispr_dens <- renderPlot({
-        plotdat <- get_crispr_dat()
+        plotdat <- get_cpd_crispr_dat()
         validate(need(!is_empty(plotdat), 
                       "      No CRISPR data associated with selected compound"))
         plotdat <- plotdat %>%
@@ -568,7 +570,7 @@ server <- function(input, output, session) {
 
     # CRISPR boxplot by disease
     output$crispr_box_ds <- renderPlot({
-        plotdat <- get_crispr_dat() 
+        plotdat <- get_cpd_crispr_dat() 
         if(is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
             filter(!is.na(disease)) %>%
@@ -578,7 +580,7 @@ server <- function(input, output, session) {
 
     # CRISPR boxplot by subtype
     output$crispr_box_st <- renderPlot({
-        plotdat <- get_crispr_dat() 
+        plotdat <- get_cpd_crispr_dat() 
         if(is_empty(plotdat)) return(NULL)
         plotdat <- plotdat %>%
             filter(disease %in% c(reactvals$ct1, reactvals$ct2)) %>%
@@ -592,7 +594,7 @@ server <- function(input, output, session) {
     
     # data table of CRISPR data
     output$cl_crisprdat <- DT::renderDataTable({
-        dat <- get_crispr_dat() %>%
+        dat <- get_cpd_crispr_dat() %>%
             dplyr::filter(disease %in% reactvals$ct1) 
         if (is_empty(dat)) return(NULL)
         if (!is_empty(input$crispr_dens_brush)) {
@@ -608,13 +610,13 @@ server <- function(input, output, session) {
     output$dl_cl_crispr_xls <- downloadHandler(
         filename = function() {
             ct <- reactvals$ct1
-            dat <- get_crispr_dat()
+            dat <- get_cpd_crispr_dat()
             gene <- unique(dat$genesymbol)
             paste0("CRISPR_metrics_", gene, "_", ct,  ".xlsx")
         },
         content = function(file) {
             ct <- reactvals$ct1
-            dat <- get_crispr_dat() %>%
+            dat <- get_cpd_crispr_dat() %>%
                 dplyr::filter(disease %in% c(ct, "Solid")) 
             writexl::write_xlsx(dat, path=file)
         })
@@ -696,6 +698,83 @@ server <- function(input, output, session) {
                 dplyr::filter(disease %in% c(ct, "Solid")) 
             writexl::write_xlsx(dat, path=file)
         })
+    
+    ############################## CRISPR ####################################
+    
+    # summarise crispr data
+    get_crispr_dat <- reactive({
+        ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+        crispr <- data$crispr_es[, which(data$crispr_es$disease %in% c(ct1,ct2))] 
+        var <- apply(exprs(crispr), 1, var)
+        crispr <- crispr[var > quantile(var, .5, na.rm=T), ] 
+        crisprdat <- exprs(crispr) %>%
+            as.data.frame() %>%
+            mutate(gene = fData(crispr)$genesymbol, .before=1) %>%
+            gather("cl_id", "value", -1) %>%
+            mutate(disease = pData(crispr)[match(.$cl_id, crispr$DepMap_ID),]$disease)
+        return(crisprdat)
+    })
+    get_crispr_summary <- reactive({
+        crisprdat <- get_crispr_dat()
+        av <- crisprdat %>%
+            group_by(disease, gene) %>%
+            summarise(avCRISPR = mean(value, na.rm=T)) %>%
+            pivot_wider(names_from = disease,
+                        values_from = avCRISPR)
+        stats <- crisprdat %>%
+            filter(!is.na(value)) %>%
+            select(gene, disease, value) %>%
+            mutate(disease = factor(disease, levels=c(ct1,ct2))) %>%
+            nest(-c(gene)) %>%
+            mutate(dCRISPR = map_dbl(data, ~filt_ttest(.x, metric="value", stat="statistic")),
+                   pCRISPR = map_dbl(data, ~filt_ttest(.x, metric="value", stat="p.value"))) %>%
+            mutate(dCRISPR_rank = rank(-dCRISPR)/length(dCRISPR),
+                   .before=3) %>%
+            select(-data)
+        summary <- merge(stats, av, by = c("gene"))
+        summary %>% arrange(-dCRISPR_rank)
+    })
+    
+    # scatter plot of average sensitivty scores per compound
+    output$crispr_scatter <- renderPlot({
+        plotdat <- get_crispr_summary()
+        print(head(plotdat))
+        print(tail(plotdat))
+        if (is_empty(plotdat)) return(NULL)
+        tmp <- c(paste0("`", reactvals$ct1, "`"),
+                 paste0("`", reactvals$ct2, "`"))
+        plotdat %>%
+            ggplot(aes_string(x=tmp[[1]], y=tmp[[2]])) +
+            geom_point(color = "#71448199", size = 2) +
+            geom_abline() +
+            scale_x_continuous(name = paste0("avCRISPR score: ", reactvals$ct1)) +
+            scale_y_continuous(name = paste0("avCRISPR score: ", reactvals$ct2)) +
+            theme_bw(base_size = 18) +
+            theme()
+    })
+    
+    # get selected points from scatter
+    get_sel_crispr <- reactive({
+        if (is_empty(input$crispr_scatter_brush)) {
+            get_crispr_summary() %>%
+                mutate_if(is.numeric, round, digits = 3)
+        } else {
+            get_crispr_summary() %>%
+                brushedPoints(input$crispr_scatter_brush) %>%
+                mutate_if(is.numeric, round, digits = 3)
+        }
+    }) 
+    
+    # drug info table
+    output$crispr_summary_dt <- DT::renderDataTable({
+        crispr_summary_sel <- get_sel_crispr() 
+        if (is.null(crispr_summary_sel)) return(NULL)
+        DT::datatable(
+            data = crispr_summary_sel,
+            rownames = F,
+            selection = list(mode = 'single', target = "row", selected = 1)
+        )
+    })
     
 }
 
