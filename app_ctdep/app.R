@@ -118,8 +118,10 @@ ui <- fluidPage(
                  tags$h5("Drag a box around points to select compounds of interest"),
                  fluidRow(align="center",
                           plotOutput("sens_scatter", height = 450, width = 450, 
-                                     brush = "scatter_brush") %>% 
-                              withSpinner(color = "#D0E6EA99")) ,
+                                     brush = "scatter_brush", 
+                                     hover = "scatter_hover") %>% 
+                              withSpinner(color = "#D0E6EA99")),
+                 verbatimTextOutput("sens_hover_text"),
                  
                  # metrics table
                  br(),br(),
@@ -192,6 +194,7 @@ ui <- fluidPage(
                           plotOutput("crispr_scatter", height = 450, width = 450, 
                                      brush = "crispr_scatter_brush") %>% 
                               withSpinner(color = "#D0E6EA99")),
+                 verbatimTextOutput("crispr_hover_text"),
                  
                  # metrics table
                  br(),br(),
@@ -341,16 +344,23 @@ server <- function(input, output, session) {
     # get selected points from scatter
     get_sel_drugsum <- reactive({
         print("get_sel_drugsum")
-        if (is_empty(input$scatter_brush)) {
-            get_drug_dep_summary() %>%
-                mutate_if(is.numeric, round, digits = 3)
-        } else {
-            get_drug_dep_summary() %>%
-                brushedPoints(input$scatter_brush) %>%
-                mutate_if(is.numeric, round, digits = 3)
+        subdat <- get_drug_dep_summary() %>%
+            mutate_if(is.numeric, round, digits = 3)
+        if (!is_empty(input$scatter_brush)) {
+            subdat <- subdat %>%
+                brushedPoints(input$scatter_brush)
         }
+        return(subdat)
     }) 
 
+    # output text for hovered
+    output$sens_hover_text <- renderText({
+        if (is_empty(input$scatter_hover)) return(NULL)
+        subdat <- get_drug_dep_summary() %>%
+            nearPoints(input$scatter_hover)
+        paste0("Compounds near cursor: ", paste0(unique(subdat$treatmentid), collapse=";"))
+    })
+    
     # drug info table
     output$drug_summary_dt <- DT::renderDataTable({
         print("drug_summary_dt")
@@ -715,6 +725,7 @@ server <- function(input, output, session) {
         return(crisprdat)
     })
     get_crispr_summary <- reactive({
+        ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
         crisprdat <- get_crispr_dat()
         av <- crisprdat %>%
             group_by(disease, gene) %>%
@@ -738,8 +749,6 @@ server <- function(input, output, session) {
     # scatter plot of average sensitivty scores per compound
     output$crispr_scatter <- renderPlot({
         plotdat <- get_crispr_summary()
-        print(head(plotdat))
-        print(tail(plotdat))
         if (is_empty(plotdat)) return(NULL)
         tmp <- c(paste0("`", reactvals$ct1, "`"),
                  paste0("`", reactvals$ct2, "`"))
@@ -755,15 +764,22 @@ server <- function(input, output, session) {
     
     # get selected points from scatter
     get_sel_crispr <- reactive({
-        if (is_empty(input$crispr_scatter_brush)) {
-            get_crispr_summary() %>%
-                mutate_if(is.numeric, round, digits = 3)
-        } else {
-            get_crispr_summary() %>%
-                brushedPoints(input$crispr_scatter_brush) %>%
-                mutate_if(is.numeric, round, digits = 3)
-        }
+        subdat <- get_crispr_summary() %>%
+            mutate_if(is.numeric, round, digits = 3)
+        if (!is_empty(input$crispr_scatter_brush)) {
+            subdat <- subdat %>%
+                brushedPoints(input$crispr_scatter_brush)
+        } 
+        return(subdat)
     }) 
+    
+    # output text for hovered
+    output$crispr_hover_text <- renderText({
+        if (is_empty(input$crispr_scatter_hover)) return(NULL)
+        subdat <- get_crispr_summary() %>%
+            nearPoints(input$crispr_scatter_hover)
+        paste0("Genes near cursor: ", paste0(unique(subdat$gene), collapse=";"))
+    })
     
     # drug info table
     output$crispr_summary_dt <- DT::renderDataTable({
