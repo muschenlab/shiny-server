@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
    id="Ebene_1"
    x="0px"
@@ -18,10 +10,18 @@
    enable-background="new 0 0 198.425 198.425"
    xml:space="preserve"
    sodipodi:docname="ctDEP.svg"
-   inkscape:version="1.0.1 (c497b03c, 2020-09-10)"
-   inkscape:export-filename="/Users/mer92/Documents/shiny-server/app_dep/dep_data/ctDEP.png"
+   inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
+   inkscape:export-filename="../hexagons/ctDEP.png"
    inkscape:export-xdpi="139.99899"
-   inkscape:export-ydpi="139.99899"><metadata
+   inkscape:export-ydpi="139.99899"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata
    id="metadata135"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
@@ -131,13 +131,16 @@
    showgrid="false"
    showguides="false"
    inkscape:zoom="3.2359422"
-   inkscape:cx="140.34039"
-   inkscape:cy="125.97484"
+   inkscape:cx="140.45368"
+   inkscape:cy="126.08383"
    inkscape:window-x="48"
    inkscape:window-y="25"
    inkscape:window-maximized="0"
    inkscape:current-layer="Ebene_1"
-   inkscape:document-rotation="0" />
+   inkscape:document-rotation="0"
+   inkscape:showpageshadow="2"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#d1d1d1" />
 
 <polygon
    clip-path="url(#SVGID_2_)"
