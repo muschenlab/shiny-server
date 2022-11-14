@@ -8,8 +8,8 @@ library(tidyverse)
 library(DT)
 library(rvg)
 library(officer)
-library(plotly)
 library(Biobase)
+library(SummarizedExperiment)
 
 ################################### Setup #####################################
 
@@ -18,7 +18,7 @@ load("dep_data/depdata.rda")
 
 ### tmp - quick fixes for data issues
 data$si <- data$si %>% 
-    rename(COSMIC_ID = "COSMIC identifier") 
+    dplyr::rename(COSMIC_ID = "COSMIC identifier") 
 data$gdsc_metrics <- data$gdsc_metrics %>%
     mutate(TARGET = ifelse(is.na(TARGET), "", TARGET))
 
@@ -65,9 +65,23 @@ tcell_si <- data$si[which(data$si$ds_type %in% c("T-cell leukemia") |
                                                         "Anaplastic large cell (ALCL)",
                                                         "T-cell lymphoma, NOS")),]
 
+# run t-test only if sufficient observations
+filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
+    if(any(table(x[,grouping_var]) < 2)) return(NA)
+    tres <- t.test(reformulate(grouping_var, metric), x)
+    return(tres[[stat]])
+}
+
+# # for testing
+# reactvals <- list()
+# reactvals$ct1_si <- bcell_si
+# reactvals$ct2_si <- solid_si
+# reactvals$ct2 <- "Solid tumor"
+# reactvals$ct1 <- "B-cell"
+
 # reactive values
 reactvals <- reactiveValues(drug_summary = data.frame(),
-                            gene = NULL, 
+                            gene = "", 
                             ct1 = NULL, ct2 = NULL,
                             ct1_si = NULL, ct2_si = NULL,
                             celltypes = celltypes)
@@ -116,24 +130,17 @@ pickcols <- function(pal, n) {
     pal[idx]
 }
 
-# run t-test only if sufficient observations
-filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
-    if(any(table(x[,grouping_var]) < 2)) return(NA)
-    tres <- t.test(reformulate(grouping_var, metric), x)
-    return(tres[[stat]])
-}
-
-# JS formatting for DT
-js_substring <- c(
-    "function(data, type, row, meta) {",
-    "return type === 'display' && data.length > 30 ?",
-    "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-    "}")
-js_scientific <- c(
-    "function(row, data, displayNum, index){",
-    "  var x = data[1];",
-    "  $('td:eq(1)', row).html(x.toExponential(3));",
-    "}")
+# # JS formatting for DT
+# js_substring <- c(
+#     "function(data, type, row, meta) {",
+#     "return type === 'display' && data.length > 30 ?",
+#     "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+#     "}")
+# js_scientific <- c(
+#     "function(row, data, displayNum, index){",
+#     "  var x = data[1];",
+#     "  $('td:eq(1)', row).html(x.toExponential(3));",
+#     "}")
 
 ##################################### UI ######################################
 ui <- fluidPage(
@@ -256,7 +263,7 @@ ui <- fluidPage(
                  downloadButton("dl_cl_rnai_xls", label = "XLS",
                                 style = "font-size:12px;height:30px;padding:5px;")
         ),
-        tabPanel("CRISPR",
+        tabPanel("Dependency",
 
                  # scatter plot of average
                  tags$h3("Average CRISPR score per gene:"),
@@ -275,6 +282,29 @@ ui <- fluidPage(
                  div(DT::dataTableOutput("crispr_summary_dt"),
                      style = "font-size:90%")
 
+        ),
+        tabPanel("Expression",
+                 
+                 # scatter plot of average
+                 tags$h3("Average protein expression:"),
+                 tags$h5("Drag a box around points to select genes of interest"),
+                 fluidRow(align="center",
+                          plotOutput("prot_scatter", height = 450, width = 450,
+                                     brush = "prot_scatter_brush",
+                                     hover = "prot_scatter_hover") %>%
+                              withSpinner(color = "#D0E6EA99")),
+                 verbatimTextOutput("prot_hover_text"),
+                 
+                 # expr table
+                 br(),br(),
+                 tags$h3("Selected genes/proteins:"),
+                 tags$h5("Select a row to plot expression accross cell lines below"),
+                 div(DT::dataTableOutput("expr_summary_dt"),
+                     style = "font-size:90%"),
+                 
+                 # expr plots
+                 uiOutput("prot_expr_dens_ui")
+                 
         )
     )
 )
@@ -320,7 +350,7 @@ server <- function(input, output, session) {
         reactvals$ct2 <- ct2
         reactvals$ct1_si <- ct1_si
         reactvals$ct2_si <- ct2_si
-        return("moo")
+        return(T)
     })
     
     ################################ Compounds ################################
@@ -391,7 +421,8 @@ server <- function(input, output, session) {
     # subset GDSC metrics
     get_gdsc_metrics <- reactive({
         print("get_gdsc_metrics")
-        if (is_empty(reactvals$ct1_si)) return(NULL)
+        rtn <- get_si()
+        if (is_empty(rtn)) return(NULL)
         ct1 <- data$gdsc_metrics %>%
             dplyr::filter(!is.na(COSMIC_ID) & COSMIC_ID %in% reactvals$ct1_si$COSMIC_ID) %>%
             mutate(ct = reactvals$ct1)
@@ -399,7 +430,7 @@ server <- function(input, output, session) {
             dplyr::filter(!is.na(COSMIC_ID) & COSMIC_ID %in% reactvals$ct2_si$COSMIC_ID) %>%
             mutate(ct = reactvals$ct2)
         gdsc_metrics <- rbind(ct1, ct2) %>% 
-            rename(treatmentid = DRUG_NAME) 
+            dplyr::rename(treatmentid = DRUG_NAME) 
         return(gdsc_metrics)
     })
     
@@ -418,7 +449,7 @@ server <- function(input, output, session) {
             pivot_wider(names_from = ct,
                         values_from = c(avEC50, avDSS1, avDSS2, avDSS3))
         stats <- gdsc_metrics %>%
-            rename(genesymbol = TARGET) %>%
+            dplyr::rename(genesymbol = TARGET) %>%
             select(treatmentid, genesymbol, ct, DSS1, DSS2, DSS3, EC50) %>%
             group_by(ct) %>%
             mutate(zDSS1 = scale(DSS1)[,1],
@@ -608,10 +639,10 @@ server <- function(input, output, session) {
         if (is.null(drug_summary_sel)) return(NULL)
         drug_summary_sel <- drug_summary_sel %>%
             select_at(1:10) %>%
-            rename(Compound = treatmentid,
-                   `Target gene` = genesymbol,
-                   `Data set` = dataset,
-                   `Overall rank` = av_rank)
+            dplyr::rename(Compound = treatmentid,
+                          `Target gene` = genesymbol,
+                          `Data set` = dataset,
+                          `Overall rank` = av_rank)
         DT::datatable(
             data = drug_summary_sel,
             rownames = F,
@@ -680,7 +711,7 @@ server <- function(input, output, session) {
         print("get_sel_cpd")
         if(is_empty(input$drug_summary_dt_rows_selected)) return(NULL)
         drug_summary <- get_sel_drugsum() %>%
-            slice(input$drug_summary_dt_rows_selected)
+            dplyr::slice(input$drug_summary_dt_rows_selected)
         if (is_empty(drug_summary)) return(NULL)
         print(head(drug_summary))
         cpd_id <- unique(drug_summary$treatmentid)
@@ -863,16 +894,16 @@ server <- function(input, output, session) {
                    treatmentid, cpd_name, genesymbol,
                    EC50, DSS1, DSS2, DSS3, ec50_published, minc, maxc) %>%
             mutate_if(is.numeric, round, digits=3) %>%
-            rename("Cell line name" = sampleid,
-                   "Disease group" = ds_group,
-                   "Disease type" = ds_type,
-                   "Disease subtype" = ds_subtype,
-                   "Treatment ID" = treatmentid,
-                   "Compound name" = cpd_name,
-                   "Target gene" = genesymbol,
-                   "Published EC50" = ec50_published,
-                   "Min conc." = minc,
-                   "Max conc." = maxc)
+            dplyr::rename("Cell line name" = sampleid,
+                          "Disease group" = ds_group,
+                          "Disease type" = ds_type,
+                          "Disease subtype" = ds_subtype,
+                          "Treatment ID" = treatmentid,
+                          "Compound name" = cpd_name,
+                          "Target gene" = genesymbol,
+                          "Published EC50" = ec50_published,
+                          "Min conc." = minc,
+                          "Max conc." = maxc)
         DT::datatable(data = metrics,
                       rownames = F,
                       options = list(lengthMenu = c(5, 10, 25),
@@ -886,15 +917,15 @@ server <- function(input, output, session) {
                    DRUG_NAME, TARGET, TARGET_PATHWAY,
                    EC50, DSS1, DSS2, DSS3, minc, maxc) %>%
             mutate_if(is.numeric, round, digits=3) %>%
-            rename("Cell line name" = CELL_LINE_NAME,
-                   "Disease group" = ds_group,
-                   "Disease type" = ds_type,
-                   "Disease subtype" = ds_subtype,
-                   "Compound name" = DRUG_NAME,
-                   "Target" = TARGET,
-                   "Target pathway" = TARGET_PATHWAY,
-                   "Min conc." = minc,
-                   "Max conc." = maxc)
+            dplyr::rename("Cell line name" = CELL_LINE_NAME,
+                          "Disease group" = ds_group,
+                          "Disease type" = ds_type,
+                          "Disease subtype" = ds_subtype,
+                          "Compound name" = DRUG_NAME,
+                          "Target" = TARGET,
+                          "Target pathway" = TARGET_PATHWAY,
+                          "Min conc." = minc,
+                          "Max conc." = maxc)
         DT::datatable(data = metrics,
                       rownames = F,
                       options = list(lengthMenu = c(5, 10, 25),
@@ -927,7 +958,7 @@ server <- function(input, output, session) {
     get_cpd_crispr_dat <- reactive({
         print("get_cpd_crispr_dat")
         gene <- reactvals$gene
-        if(is_empty(gene) | gene=="") return(NULL)
+        if(is_empty(gene) | gene=="") { print("moo"); return(NULL) }
         geneidx <- which(fData(data$crispr_es)$genesymbol == gene)
         df <- cbind(crispr_effect = exprs(data$crispr_es)[geneidx, ],
                     pData(data$crispr_es))
@@ -1224,6 +1255,233 @@ server <- function(input, output, session) {
             ))
         )
     })
+    
+    
+    ############################## Expression ####################################
+    
+    # av proteomics data
+    get_prot_av <- reactive({
+        print("get_prot_av")
+        ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+        prot <- data$sanger_prot_se
+        idx1 <- which(!is.na(prot$Sanger_Model_ID) & prot$Sanger_Model_ID %in% reactvals$ct1_si$Sanger_Model_ID)
+        idx2 <- which(!is.na(prot$Sanger_Model_ID) & prot$Sanger_Model_ID %in% reactvals$ct2_si$Sanger_Model_ID)
+        av <- data.frame(genesymbol = rowData(prot)$name,
+                         protein_id = rowData(prot)$ID,
+                         avExpr_1 = rowMeans(assay(prot)[, idx1]),
+                         avExpr_2 = rowMeans(assay(prot)[, idx2])) %>%
+            mutate(dExpr = avExpr_1 - avExpr_2)
+        colnames(av) <- sub("_1$", paste0("_",ct1), colnames(av))
+        colnames(av) <- sub("_2$", paste0("_",ct2), colnames(av))
+        return(av)
+    })
+    get_prot_dat <- reactive({
+        print("get_prot_dat")
+        ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+        prot <- data$sanger_prot_se
+        idx1 <- which(!is.na(prot$Sanger_Model_ID) & prot$Sanger_Model_ID %in% reactvals$ct1_si$Sanger_Model_ID)
+        idx2 <- which(!is.na(prot$Sanger_Model_ID) & prot$Sanger_Model_ID %in% reactvals$ct2_si$Sanger_Model_ID)
+        prot$ct <- NA; prot$ct[idx2] <- ct2; prot$ct[idx1] <- ct1
+        av <- get_prot_av()
+        prot <- prot[, c(idx1, idx2)]
+        protsub <- prot[abs(av$dExpr) > quantile(abs(av$dExpr), .85, na.rm=T), ]
+        protdat <- assay(protsub) %>%
+            as.data.frame() %>%
+            mutate(genesymbol = rowData(protsub)$name, .before=1) %>%
+            gather("cl_id", "value", -1) %>%
+            mutate(ct = colData(protsub)[match(.$cl_id, protsub$Sanger_Model_ID),]$ct) %>%
+            dplyr::filter(!is.na(value))
+        return(protdat)
+    })
+    get_prot_summary <- reactive({
+        print("get_prot_summary")
+        ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+        protdat <- get_prot_dat()
+        av <- get_prot_av()
+        av <- av[, -which(colnames(av)=="dExpr")]
+        stats <- protdat %>%
+            select(genesymbol, ct, value) %>%
+            mutate(ct = factor(ct, levels=c(ct1,ct2))) %>%
+            nest(data = -genesymbol) %>%
+            mutate(dExpr = map_dbl(data, ~filt_ttest(.x, metric="value", stat="statistic")),
+                   pExpr = map_dbl(data, ~filt_ttest(.x, metric="value", stat="p.value"))) %>%
+            mutate(qExpr = p.adjust(pExpr)) %>%
+            mutate(dExpr_rank = rank(dExpr)/length(dExpr),
+                   .before=3) %>%
+            select(-data)
+        summary <- merge(stats, av, by = c("genesymbol"))
+        summary <- summary %>% arrange(-dExpr_rank)
+        return(summary)
+    })
+    
+    # scatter plot of average sensitivity scores per compound
+    output$prot_scatter <- renderPlot({
+        plotdat <- get_prot_summary()
+        if (is_empty(plotdat)) return(NULL)
+        tmp <- c(paste0("`avExpr_", reactvals$ct1, "`"),
+                 paste0("`avExpr_", reactvals$ct2, "`"))
+        plotdat %>%
+            ggplot(aes_string(x=tmp[[1]], y=tmp[[2]])) +
+            geom_point(aes(color=ifelse(qExpr > 0.001, "B", "A")), size = 2) +
+            geom_abline() +
+            scale_x_continuous(name = paste0("Average protein level: ", reactvals$ct1)) +
+            scale_y_continuous(name = paste0("Average protein level: ", reactvals$ct2)) +
+            scale_color_manual(values=c("#71448199","#D0E6EA66")) +
+            theme_bw(base_size = 18) +
+            theme(legend.position = "none")
+    })
+    
+    # get selected points from scatter
+    get_sel_expr <- reactive({
+        print("get_sel_expr")
+        subdat <- get_prot_summary() %>%
+            mutate_if(grepl("avExpr|dExpr", names(.)), round, digits = 3)
+        if (!is_empty(input$prot_scatter_brush)) {
+            subdat <- subdat %>%
+                brushedPoints(input$prot_scatter_brush)
+        }
+        return(subdat)
+    })
+    
+    # output text for hovered
+    output$prot_hover_text <- renderText({
+        if (is_empty(input$prot_scatter_hover)) return(NULL)
+        subdat <- get_prot_summary() %>%
+            nearPoints(input$prot_scatter_hover)
+        paste0("Genes near cursor: ", paste0(unique(subdat$genesymbol), collapse=";"))
+    })
+    
+    # expr info table
+    output$expr_summary_dt <- DT::renderDataTable({
+        expr_summary_sel <- get_sel_expr() %>%
+            dplyr::select(-"pExpr")
+        print(str(expr_summary_sel))
+        if (is.null(expr_summary_sel)) return(NULL)
+        DT::datatable(
+            data = expr_summary_sel,
+            rownames = F,
+            selection = list(mode = 'multiple', target = "row", selected = 1),
+            options = list(rowCallback = JS(
+                "function(row, data, displayNum, index){",
+                "  var x = data[3];",
+                "  $('td:eq(3)', row).html(x.toExponential(2));",
+                "}"
+            ))
+        )
+    })
+    
+    # get selected gene(s)
+    get_sel_genes_expr <- reactive({
+        print("get_sel_genes_expr")
+        if(is_empty(input$expr_summary_dt_rows_selected)) return(NULL)
+        expr_summary <- get_sel_expr() %>%
+            dplyr::slice(input$expr_summary_dt_rows_selected)
+        if (is_empty(expr_summary)) return(NULL)
+        sel_genes <- unique(expr_summary$genesymbol)
+        reactvals$sel_genes <- sel_genes
+        return(sel_genes)
+    })
+    
+    # get expr values for selected genes
+    get_sel_prot_levels <- reactive({
+        print("get_sel_prot_levels")
+        sel_genes <- get_sel_genes_expr()
+        if (is_empty(sel_genes)) return(NULL)
+        prot <- data$sanger_prot_se
+        prot <- prot[which(rowData(prot)$name %in% sel_genes),]
+        exprdat  <- assay(prot) %>%
+            as.data.frame() %>%
+            mutate(genesymbol = rowData(prot)$name, .before=1) %>%
+            gather("sampleid", "expr", -1)
+        if (is_empty(exprdat) | nrow(exprdat) < 1) return(NULL)
+        return(exprdat)
+    })
+    
+    # ct filtering and formatting
+    format_prot_levels <- reactive({
+        print("format_prot_levels_ct")
+        exprdat <- get_sel_prot_levels()
+        if (is_empty(exprdat)) return(NULL)
+        ct1 <- exprdat %>%
+            dplyr::filter(!is.na(sampleid) & sampleid %in% reactvals$ct1_si$Sanger_Model_ID) %>%
+            mutate(ct = reactvals$ct1)
+        ct2 <- exprdat %>%
+            dplyr::filter(!is.na(sampleid) & sampleid %in% reactvals$ct2_si$Sanger_Model_ID) %>%
+            mutate(ct = reactvals$ct2)
+        plotdat <- rbind(ct1, ct2) %>%
+            mutate(ct = factor(ct, levels=c(reactvals$ct1, reactvals$ct2)))
+        matchidx <- match(plotdat$sampleid, data$si$Sanger_Model_ID)
+        plotdat <- plotdat %>%
+            mutate(ds_group = data$si[matchidx,]$ds_group,
+                   ds_subtype = data$si[matchidx,]$ds_subtype) %>%
+            mutate(st = ifelse(ct == reactvals$ct1,
+                               as.character(ds_subtype),
+                               as.character(ct)))
+        lvls <- unique(plotdat$st)
+        lvls <- c(lvls[!grepl(reactvals$ct2, lvls)], reactvals$ct2)
+        plotdat <- plotdat %>%
+            mutate(st = factor(st, levels=lvls))
+        return(plotdat)
+    })
+    
+    # drug sensitivity density plot
+    output$prot_expr_dens_ui <- renderUI({
+        print("prot_expr_dens_ui")
+        plotdat <- format_prot_levels()
+        print(head(plotdat))
+        print(str(plotdat))
+        if (is_empty(plotdat) | nrow(plotdat) < 1) return(NULL)
+        sel_genes <- get_sel_genes_expr()
+        print("Sel genes")
+        print(sel_genes)
+        if (length(sel_genes) == 1) {
+            print("dens")
+            p <- gen_densplot(plotdat, "expr", "ct", xlab = "Protein levels [AU]") +
+                ggtitle(paste0(sel_genes, " expression"))
+            output$prot_expr_dens_plot <- renderPlot(p)
+            fluidRow(splitLayout(cellWidths = c("20%"),
+                                 plotOutput("prot_expr_dens_plot", height = 225)))
+        } else if (length(sel_genes) < 101) {
+            print("hm")
+            ctav <- plotdat %>% 
+                group_by(genesymbol, ct) %>%
+                summarise(av=mean(expr, na.rm=T)) %>%
+                ungroup() %>%
+                pivot_wider(names_from = ct,
+                            values_from = av) %>%
+                mutate(diff = .[,2] - .[,3]) %>%
+                arrange(diff)
+            p <- plotdat %>% 
+                group_by(sampleid, genesymbol) %>% 
+                summarise(ct = ct,
+                          av = mean(expr, na.rm=T)) %>% 
+                group_by(genesymbol) %>% 
+                mutate(z = scale(av)[,1]) %>%
+                ungroup %>%
+                mutate(genesymbol = factor(genesymbol, levels=unique(ctav$genesymbol))) %>%
+                ggplot(aes(x=sampleid, y=genesymbol, fill=z)) + 
+                geom_tile() +
+                facet_wrap(~ct, nrow=1, scales="free_x") +
+                theme_bw() +
+                theme(axis.text.x = element_blank(),
+                      axis.ticks = element_blank(),
+                      panel.grid = element_blank(),
+                      panel.background = element_blank(),
+                      panel.border = element_rect(fill=NA),
+                      strip.background = element_blank(),
+                      strip.text = element_text(size=12)) +
+                scale_fill_gradient2(low="#426284cc", mid="#d0e6ea99", high="#71448166",
+                                     name="Relative expression [AU]") +
+                scale_y_discrete(expand=c(0,0)) +
+                xlab("Cell lines") + ylab("")
+            output$prot_expr_hm_plot <- renderPlot(p)
+            plotheight <- 200 + (length(sel_genes)*15)
+            fluidRow(plotOutput("prot_expr_hm_plot", height = plotheight, width = 1200))
+        } else {
+            tags$h5("Too many genes selected to plot")
+        }
+    })
+
 }
 
 # Run the application 
