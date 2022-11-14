@@ -1470,7 +1470,7 @@ server <- function(input, output, session) {
                       panel.border = element_rect(fill=NA),
                       strip.background = element_blank(),
                       strip.text = element_text(size=12)) +
-                scale_fill_gradient2(low="#426284cc", mid="#d0e6ea99", high="#71448166",
+                scale_fill_gradient2(low="#426284cc", mid="#d0e6ea99", high="#714481",
                                      name="Relative expression [AU]") +
                 scale_y_discrete(expand=c(0,0)) +
                 xlab("Cell lines") + ylab("")
