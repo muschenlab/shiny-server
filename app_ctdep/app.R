@@ -67,6 +67,7 @@ tcell_si <- data$si[which(data$si$ds_type %in% c("T-cell leukemia") |
 
 # run t-test only if sufficient observations
 filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
+    x <- x[, c(grouping_var, metric)] %>% na.omit()
     if(any(table(x[,grouping_var]) < 2)) return(NA)
     tres <- t.test(reformulate(grouping_var, metric), x)
     return(tres[[stat]])
@@ -74,10 +75,10 @@ filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
 
 # # for testing
 # reactvals <- list()
-# reactvals$ct1_si <- bcell_si
+# reactvals$ct1_si <- data$si[which(data$si$ds_type %in% c("B-cell leukemia")),]
 # reactvals$ct2_si <- solid_si
 # reactvals$ct2 <- "Solid tumor"
-# reactvals$ct1 <- "B-cell"
+# reactvals$ct1 <- "B-cell leukemia"
 
 # reactive values
 reactvals <- reactiveValues(drug_summary = data.frame(),
@@ -196,8 +197,10 @@ ui <- fluidPage(
                  tags$h5("Select a row to plot compound/target sensitivity accross cell lines below"),
                  div(DT::dataTableOutput("drug_summary_dt"),
                      style = "font-size:90%"),
+                 downloadButton("dl_drug_summary_xls", label = "XLS",
+                                style = "font-size:12px;height:30px;padding:5px;"),
                  
-                 # headers
+                 # selected compound info
                  br(),br(),
                  tags$h3("Cell-line metrics for selected compound/target:"),
                  fluidRow(align="center", uiOutput("sel_cpd_text")),
@@ -466,6 +469,7 @@ server <- function(input, output, session) {
                    pDSS1 = map_dbl(data, ~filt_ttest(.x, metric="zDSS1", stat="p.value")),
                    pDSS2 = map_dbl(data, ~filt_ttest(.x, metric="zDSS2", stat="p.value")),
                    pDSS3 = map_dbl(data, ~filt_ttest(.x, metric="zDSS3", stat="p.value"))) %>%
+            mutate_at(vars(dEC50:dDSS3), ~ifelse(is.na(.), 0, .)) %>%
             mutate(pEC50 = p.adjust(pEC50),
                    pDSS1 = p.adjust(pDSS1),
                    pDSS2 = p.adjust(pDSS2),
@@ -523,7 +527,6 @@ server <- function(input, output, session) {
                         .before = 4) %>%
             ungroup() %>%
             arrange(-av_rank)
-        comb %>% filter(grepl("PF-03758309", treatmentid)) %>% print()
         return(comb)
     })
     
@@ -658,6 +661,16 @@ server <- function(input, output, session) {
             ))), callback = JS('table.page(3).draw(false);')
         )
     })
+    output$dl_drug_summary_xls <- downloadHandler(
+        filename = function() {
+            paste0("Drug_summary_table_", reactvals$ct1, "_vs_", 
+                   reactvals$ct2, ".xlsx")
+        },
+        content = function(file) {
+            drug_summary <- get_sel_drugsum()
+            if(is_empty(drug_summary)) return(NULL)
+            writexl::write_xlsx(drug_summary, path=file)
+        })
     
     # text just highlighting the selected compound/gene
     output$sel_cpd_text <- renderUI({
