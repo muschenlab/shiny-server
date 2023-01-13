@@ -18,7 +18,7 @@ load("dep_data/depdata.rda")
 
 ### tmp - quick fixes for data issues
 data$si <- data$si %>% 
-    dplyr::rename(COSMIC_ID = "COSMIC identifier") 
+    dplyr::rename(COSMIC_ID = "COSMIC.identifier") 
 data$gdsc_metrics <- data$gdsc_metrics %>%
     mutate(TARGET = ifelse(is.na(TARGET), "", TARGET))
 
@@ -36,34 +36,28 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 # cell types
 celltypes <- unique(c("Solid tumor",
                       "Hematological",
-                      "B-cell",
-                      "T-cell",
+                      "B-cell leukemia",
+                      "B-cell lymphoma",
+                      "T-cell leukemia",
+                      "T-cell lyphoma",
                       data$si$ds_type))
-excluded_cl <- c("NOS","Unknown","Engineered","Biphenotypic leukemia")
+excluded_cl <- c("NOS","Unknown","Engineered","Other")
 celltypes <- celltypes[which(!is.na(celltypes) & 
                              !celltypes %in% excluded_cl)] 
-solid_si <- data$si[which(!data$si$ds_type %in% c("B-cell leukemia",
-                                                  "T-cell leukemia",
-                                                  "Myeloid leukemia",
-                                                  "Lymphoma", 
+solid_si <- data$si[which(!data$si$ds_type %in% c("B-cell",
+                                                  "T-cell",
+                                                  "Myeloid",
                                                   "Plasma cell")),]
-haem_si <- data$si[which(data$si$ds_type %in% c("B-cell leukemia",
-                                                "T-cell leukemia",
-                                                "Myeloid leukemia",
-                                                "Lymphoma", 
+haem_si <- data$si[which(data$si$ds_type %in% c("B-cell",
+                                                "T-cell",
+                                                "Myeloid",
                                                 "Plasma cell")),]
-bcell_si <- data$si[which(data$si$ds_type %in% c("B-cell leukemia") |
-                              data$si$ds_subtype %in% c("B-cell NHL, NOS",
-                                                        "Burkitts",
-                                                        "Diffuse large B-cell (DLBCL)",
-                                                        "Follicular (FL)",
-                                                        "Hodgkin lymphoma",
-                                                        "Mantle cell (MCL)",
-                                                        "Primary effusion (PEL)")),]
-tcell_si <- data$si[which(data$si$ds_type %in% c("T-cell leukemia") |
-                              data$si$ds_subtype %in% c("Cutaneous T-cell",
-                                                        "Anaplastic large cell (ALCL)",
-                                                        "T-cell lymphoma, NOS")),]
+bcell_leuk_si <- data$si[grep("B-ALL", data$si$ds_subtype),]
+bcell_lymph_si <- data$si[which(data$si$ds_type == "B-cell" &
+                                grepl("lymphoma", data$si$ds_subtype)),]
+tcell_leuk_si <- data$si[grep("T-ALL", data$si$ds_subtype),]
+tcell_lymph_si <- data$si[which(data$si$ds_type == "T-cell" &
+                               grepl("lymphoma", data$si$ds_subtype)),]
 
 # run t-test only if sufficient observations
 filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
@@ -341,13 +335,17 @@ server <- function(input, output, session) {
         if (is_empty(ct1) | is_empty(ct2)) return(NULL)
         if (ct1 == "Solid tumor") { ct1_si <- solid_si }
         else if (ct1 == "Hematological") { ct1_si <- haem_si }
-        else if (ct1 == "B-cell") { ct1_si <- bcell_si }
-        else if (ct1 == "T-cell") { ct1_si <- tcell_si }
+        else if (ct1 == "B-cell leukemia") { ct1_si <- bcell_leuk_si }
+        else if (ct1 == "T-cell leukemia") { ct1_si <- tcell_leuk_si }
+        else if (ct1 == "B-cell lymphoma") { ct1_si <- bcell_lymph_si }
+        else if (ct1 == "T-cell lymphoma") { ct1_si <- tcell_lymph_si }
         else { ct1_si <- data$si[which(data$si$ds_type == ct1), ] }
         if (ct2 == "Solid tumor") { ct2_si <- solid_si }
         else if (ct2 == "Hematological") { ct2_si <- haem_si }
-        else if (ct2 == "B-cell") { ct2_si <- bcell_si }
-        else if (ct2 == "T-cell") { ct2_si <- tcell_si }
+        else if (ct1 == "B-cell leukemia") { ct1_si <- bcell_leuk_si }
+        else if (ct1 == "T-cell leukemia") { ct1_si <- tcell_leuk_si }
+        else if (ct1 == "B-cell lymphoma") { ct1_si <- bcell_lymph_si }
+        else if (ct1 == "T-cell lymphoma") { ct1_si <- tcell_lymph_si }
         else { ct2_si <- data$si[which(data$si$ds_type == ct2), ] }
         reactvals$ct1 <- ct1
         reactvals$ct2 <- ct2
@@ -406,6 +404,7 @@ server <- function(input, output, session) {
                    pDSS1 = map_dbl(data, ~filt_ttest(.x, metric="zDSS1", stat="p.value")),
                    pDSS2 = map_dbl(data, ~filt_ttest(.x, metric="zDSS2", stat="p.value")),
                    pDSS3 = map_dbl(data, ~filt_ttest(.x, metric="zDSS3", stat="p.value"))) %>%
+            mutate_at(vars(dEC50:dDSS3), ~ifelse(is.na(.), 0, .)) %>%
             mutate(pEC50 = p.adjust(pEC50),
                    pDSS1 = p.adjust(pDSS1),
                    pDSS2 = p.adjust(pDSS2),
