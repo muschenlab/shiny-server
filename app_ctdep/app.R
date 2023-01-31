@@ -19,7 +19,8 @@ load("dep_data/depdata.rda")
 ### tmp - quick fixes for data issues
 data$si <- data$si %>% 
     dplyr::rename(COSMIC_ID = "COSMIC.identifier") %>%
-    filter(!ds_type %in% c("Testicular", "Embryonal"))
+    filter(!ds_type %in% c("Testicular", "Embryonal","NOS","Unknown",
+                           "Engineered","Other","Eye","Gallbladder"))
 data$gdsc_metrics <- data$gdsc_metrics %>%
     mutate(TARGET = ifelse(is.na(TARGET), "", TARGET))
 
@@ -35,15 +36,27 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
 }
 
 # cell types
-celltypes <- unique(c("Solid tumor",
-                      "B-cell leukemia",
-                      "B-cell lymphoma",
-                      "T-cell leukemia",
-                      "T-cell lyphoma",
-                      data$si$ds_type))
-excluded_cl <- c("NOS","Unknown","Engineered","Other")
-celltypes <- celltypes[which(!is.na(celltypes) & 
-                             !celltypes %in% excluded_cl)] 
+celltypes1 <- unique(c("B-cell",
+                       "B-cell leukemia",
+                       "B-cell lymphoma",
+                       "Mantle cell lymphoma (MCL)",
+                       "Plasma cell",
+                       "T-cell",
+                       "T-cell leukemia",
+                       "T-cell lyphoma",
+                       "Myeloid",
+                       data$si$ds_type))
+celltypes2 <- unique(c("Solid tumor",
+                       "B-cell",
+                       "B-cell leukemia",
+                       "B-cell lymphoma",
+                       "Mantle cell lymphoma (MCL)",
+                       "Plasma cell",
+                       "T-cell",
+                       "T-cell leukemia",
+                       "T-cell lyphoma",
+                       "Myeloid",
+                       data$si$ds_type))
 solid_si <- data$si[which(!data$si$ds_type %in% c("B-cell",
                                                   "T-cell",
                                                   "Myeloid",
@@ -58,6 +71,7 @@ bcell_lymph_si <- data$si[which(data$si$ds_type == "B-cell" &
 tcell_leuk_si <- data$si[grep("T-ALL", data$si$ds_subtype),]
 tcell_lymph_si <- data$si[which(data$si$ds_type == "T-cell" &
                                grepl("lymphoma", data$si$ds_subtype)),]
+mcl_si <- data$si[grep("MCL", data$si$ds_subtype),]
 
 # run t-test only if sufficient observations
 filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
@@ -69,17 +83,16 @@ filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
 
 # # for testing
 # reactvals <- list()
-# reactvals$ct1_si <- data$si[which(data$si$ds_type %in% c("B-cell")),]
+# reactvals$ct1_si <- data$si[grep("MCL", data$si$ds_subtype),]
 # reactvals$ct2_si <- data$si[which(data$si$ds_type == "Colorectal"),]
-# reactvals$ct1 <- "B-cell"
+# reactvals$ct1 <- "Mantle cell lymphoma (MCL)"
 # reactvals$ct2 <- "Colorectal"
 
 # reactive values
 reactvals <- reactiveValues(drug_summary = data.frame(),
                             gene = "", 
                             ct1 = NULL, ct2 = NULL,
-                            ct1_si = NULL, ct2_si = NULL,
-                            celltypes = celltypes)
+                            ct1_si = NULL, ct2_si = NULL)
 
 # boxplot function
 gen_boxplot <- function(plotdat, x,  y, xlab = "", ylab) {
@@ -342,13 +355,11 @@ server <- function(input, output, session) {
     # cell type comparison choice UI
     output$ct1_choice_ui <- renderUI({
         selectInput('ct1_choice', "Selected cell type", 
-                    reactvals$celltypes,
-                    "B-cell")
+                    celltypes1, "B-cell")
     })
     output$ct2_choice_ui <- renderUI({
         selectInput('ct2_choice', "Control population", 
-                    reactvals$celltypes,
-                    "Solid tumor")
+                    celltypes2, "Solid tumor")
     })
     
     # get sample info
@@ -357,19 +368,20 @@ server <- function(input, output, session) {
         ct1 <- input$ct1_choice
         ct2 <- input$ct2_choice
         if (is_empty(ct1) | is_empty(ct2)) return(NULL)
-        if (ct1 == "Solid tumor") { ct1_si <- solid_si }
-        else if (ct1 == "Hematological") { ct1_si <- haem_si }
+        if (ct1 == "Hematological") { ct1_si <- haem_si }
         else if (ct1 == "B-cell leukemia") { ct1_si <- bcell_leuk_si }
         else if (ct1 == "T-cell leukemia") { ct1_si <- tcell_leuk_si }
         else if (ct1 == "B-cell lymphoma") { ct1_si <- bcell_lymph_si }
         else if (ct1 == "T-cell lymphoma") { ct1_si <- tcell_lymph_si }
+        else if (ct1 == "Mantle cell lymphoma (MCL)") { ct1_si <- mcl_si }
         else { ct1_si <- data$si[which(data$si$ds_type == ct1), ] }
         if (ct2 == "Solid tumor") { ct2_si <- solid_si }
         else if (ct2 == "Hematological") { ct2_si <- haem_si }
-        else if (ct1 == "B-cell leukemia") { ct1_si <- bcell_leuk_si }
-        else if (ct1 == "T-cell leukemia") { ct1_si <- tcell_leuk_si }
-        else if (ct1 == "B-cell lymphoma") { ct1_si <- bcell_lymph_si }
-        else if (ct1 == "T-cell lymphoma") { ct1_si <- tcell_lymph_si }
+        else if (ct2 == "B-cell leukemia") { ct2_si <- bcell_leuk_si }
+        else if (ct2 == "T-cell leukemia") { ct2_si <- tcell_leuk_si }
+        else if (ct2 == "B-cell lymphoma") { ct2_si <- bcell_lymph_si }
+        else if (ct2 == "T-cell lymphoma") { ct2_si <- tcell_lymph_si }
+        else if (ct2 == "Mantle cell lymphoma (MCL)") { ct2_si <- mcl_si }
         else { ct2_si <- data$si[which(data$si$ds_type == ct2), ] }
         reactvals$ct1 <- ct1
         reactvals$ct2 <- ct2
@@ -393,6 +405,7 @@ server <- function(input, output, session) {
             dplyr::filter(!is.na(sampleid) & 
                        sampleid %in% reactvals$ct2_si$sampleid) %>%
             mutate(ct = reactvals$ct2)
+        print(head(ct1)); print(head(ct2))
         if (nrow(ct1) < 3 | nrow(ct2) < 3) return(NULL)
         ctd_metrics <- rbind(ct1, ct2)
         return(ctd_metrics)
@@ -449,13 +462,14 @@ server <- function(input, output, session) {
     get_gdsc_metrics <- reactive({
         print("get_gdsc_metrics")
         rtn <- get_si()
-        if (is_empty(rtn)) return(NULL)
+        if (is.null(rtn)) return(NULL)
         ct1 <- data$gdsc_metrics %>%
             dplyr::filter(!is.na(COSMIC_ID) & COSMIC_ID %in% reactvals$ct1_si$COSMIC_ID) %>%
             mutate(ct = reactvals$ct1)
         ct2 <- data$gdsc_metrics %>%
             dplyr::filter(!is.na(COSMIC_ID) & COSMIC_ID %in% reactvals$ct2_si$COSMIC_ID) %>%
             mutate(ct = reactvals$ct2)
+        print(head(ct1)); print(head(ct2))
         gdsc_metrics <- rbind(ct1, ct2) %>% 
             dplyr::rename(treatmentid = DRUG_NAME) 
         return(gdsc_metrics)
@@ -513,11 +527,24 @@ server <- function(input, output, session) {
     get_drug_dep_summary <- reactive({
         print("get_drug_dep_summary")
         ctd_summary <- get_ctd_summary()
+        print(head(ctd_summary))
         gdsc_summary <- get_gdsc_summary()
-        if (is_empty(ctd_summary) | is_empty(gdsc_summary)) return(NULL)
-        drug_summary <- rbind(ctd_summary, gdsc_summary) %>%
+        print(head(gdsc_summary))
+        if (is_empty(ctd_summary) & is_empty(gdsc_summary)) {
+          return(NULL)
+        } else if (is_empty(ctd_summary)) {
+          drug_summary <- gdsc_summary %>%
             separate_rows(genesymbol, sep=";|, ") %>%
             distinct()
+        } else if (is_empty(gdsc_summary)) {
+          drug_summary <- ctd_summary %>%
+            separate_rows(genesymbol, sep=";|, ") %>%
+            distinct()
+        } else {
+          drug_summary <- rbind(ctd_summary, gdsc_summary) %>%
+            separate_rows(genesymbol, sep=";|, ") %>%
+            distinct()
+        }
         genes <- unique(drug_summary$genesymbol)
         genes <- genes[!is.na(genes)]
         crispr <- data$crispr_es[which(fData(data$crispr_es)$genesymbol %in% genes), ]
@@ -559,6 +586,7 @@ server <- function(input, output, session) {
         print("ctd_scatter")
         selmetric <- "DSS3" ## tmp
         plotdat <- get_drug_dep_summary()
+        print(head(plotdat), 3)
         if(is_empty(plotdat)) return(plotdat)
         sig <- plotdat[,grep(paste0("p",selmetric), colnames(plotdat))]
         plotdat <- plotdat %>%
@@ -744,19 +772,21 @@ server <- function(input, output, session) {
 
     # get selected compound
     get_sel_cpd <- reactive({
-        print("get_sel_cpd")
-        if(is_empty(input$drug_summary_dt_rows_selected)) return(NULL)
-        drug_summary <- get_sel_drugsum() %>%
-            dplyr::slice(input$drug_summary_dt_rows_selected)
-        if (is_empty(drug_summary)) return(NULL)
-        cpd_id <- unique(drug_summary$treatmentid)
-        formatted_cpd <- sub("(\\(.+\\))", "", cpd_id)
-        formatted_cpd <- sub("\\:", "_", formatted_cpd)
-        reactvals$cpd_id <- cpd_id
-        reactvals$formatted_cpd <- formatted_cpd
-        gene <- unique(drug_summary$genesymbol)
-        reactvals$gene <- gene
-        return(cpd_id)
+      print("get_sel_cpd")
+      drug_summary <- get_sel_drugsum()
+      if(is.null(input$drug_summary_dt_rows_selected) |
+         is.null(drug_summary)) return(NULL)
+      drug_summary <- drug_summary %>%
+        dplyr::slice(input$drug_summary_dt_rows_selected)
+      if (is_empty(drug_summary)) return(NULL)
+      cpd_id <- unique(drug_summary$treatmentid)
+      formatted_cpd <- sub("(\\(.+\\))", "", cpd_id)
+      formatted_cpd <- sub("\\:", "_", formatted_cpd)
+      reactvals$cpd_id <- cpd_id
+      reactvals$formatted_cpd <- formatted_cpd
+      gene <- unique(drug_summary$genesymbol)
+      reactvals$gene <- gene
+      return(cpd_id)
     })
     
     # get drug metrics for selected row
