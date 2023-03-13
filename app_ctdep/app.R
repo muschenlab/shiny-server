@@ -174,6 +174,9 @@ ui <- fluidPage(
     
     # main UI
     tabsetPanel(
+        tabPanel("Summary",
+                 div(DT::dataTableOutput("gene_summary_dt"),
+                     style = "font-size:90%")),
         tabPanel("Compounds",
                  
                  # scatter plot of average
@@ -390,6 +393,58 @@ server <- function(input, output, session) {
         return(T)
     })
     
+    ###################### Overall ########################
+    
+    concat_uniq <- function(x) { paste0(unique(x), collapse=";") }
+    get_gene_summary <- reactive({
+      cpd_summary <- get_drug_dep_summary() 
+      if(is.null(cpd_summary)) return(NULL)
+      gene_summary <- cbind(cpd_summary[,1:10],
+                            data$gi[match(cpd_summary$genesymbol, data$gi$SYMBOL), ])
+      gene_summary %>%
+        dplyr::filter(Gene != "" & !is.na(Gene)) %>%
+        group_by(genesymbol) %>%
+        summarise(Gene_symbol = unique(genesymbol),
+                  Gene_name = concat_uniq(GENENAME),
+                  Entrez_ID = concat_uniq(ENTREZID),
+                  Ensembl_ID = concat_uniq(ENSEMBL),
+                  Drug_screens = concat_uniq(dataset),
+                  Compounds = concat_uniq(treatmentid),
+                  Overall_rank = mean(av_rank, na.rm=T),
+                  dEC50_rank = mean(dEC50_rank, na.rm=T),
+                  dDSS3_rank = mean(dDSS3_rank, na.rm=T),
+                  dCRISPR_rank = mean(dCRISPR_rank, na.rm=T),
+                  dRNAi_rank = mean(dRNAi_rank, na.rm=T),
+                  CGC_tier = concat_uniq(CGC_tier),
+                  CGC_cancers = concat_uniq(c(CGC_cancers_somatic, 
+                                              CGC_cancers_germline)),
+                  CGC_role = concat_uniq(CGC_role),
+                  Transloc_partners = concat_uniq(CGC_translocation_partner),
+                  Known_driver = concat_uniq(Mutability_cancers),
+                  Mutfreq = concat_uniq(Mutability_mutfreq)) %>%
+        mutate(across(8:12, round, 2))
+    })
+    output$gene_summary_dt <- DT::renderDataTable({
+      print("gene_summary_dt")
+      gene_summary <- get_gene_summary()
+      if (is.null(gene_summary)) return(NULL)
+      print(head(gene_summary))
+      DT::datatable(
+        data = gene_summary,
+        rownames = F,
+        colnames = gsub("_", " ", colnames(gene_summary)),
+        selection = list(mode = 'single', target = "row", selected = 1),
+        options = list(columnDefs = list(list(
+          targets = c(1:6,12:16),
+          render = JS(
+            "function(data, type, row, meta) {",
+            "return type === 'display' && data.length > 30 ?",
+            "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+            "}")
+        ))), callback = JS('table.page(3).draw(false);')
+      )
+    })
+    
     ################################ Compounds ################################
     
     # subset CTD metrics
@@ -405,7 +460,6 @@ server <- function(input, output, session) {
             dplyr::filter(!is.na(sampleid) & 
                        sampleid %in% reactvals$ct2_si$sampleid) %>%
             mutate(ct = reactvals$ct2)
-        print(head(ct1)); print(head(ct2))
         if (nrow(ct1) < 3 | nrow(ct2) < 3) return(NULL)
         ctd_metrics <- rbind(ct1, ct2)
         return(ctd_metrics)
@@ -469,7 +523,6 @@ server <- function(input, output, session) {
         ct2 <- data$gdsc_metrics %>%
             dplyr::filter(!is.na(COSMIC_ID) & COSMIC_ID %in% reactvals$ct2_si$COSMIC_ID) %>%
             mutate(ct = reactvals$ct2)
-        print(head(ct1)); print(head(ct2))
         gdsc_metrics <- rbind(ct1, ct2) %>% 
             dplyr::rename(treatmentid = DRUG_NAME) 
         return(gdsc_metrics)
@@ -527,9 +580,7 @@ server <- function(input, output, session) {
     get_drug_dep_summary <- reactive({
         print("get_drug_dep_summary")
         ctd_summary <- get_ctd_summary()
-        print(head(ctd_summary))
         gdsc_summary <- get_gdsc_summary()
-        print(head(gdsc_summary))
         if (is_empty(ctd_summary) & is_empty(gdsc_summary)) {
           return(NULL)
         } else if (is_empty(ctd_summary)) {
@@ -586,7 +637,6 @@ server <- function(input, output, session) {
         print("ctd_scatter")
         selmetric <- "DSS3" ## tmp
         plotdat <- get_drug_dep_summary()
-        print(head(plotdat), 3)
         if(is_empty(plotdat)) return(plotdat)
         sig <- plotdat[,grep(paste0("p",selmetric), colnames(plotdat))]
         plotdat <- plotdat %>%
@@ -692,7 +742,6 @@ server <- function(input, output, session) {
         drug_summary_sel <- get_sel_drugsum()
         if (is.null(drug_summary_sel)) return(NULL)
         drug_summary_sel <- drug_summary_sel %>%
-            select_at(1:10) %>%
             dplyr::rename(Compound = treatmentid,
                           `Target gene` = genesymbol,
                           `Data set` = dataset,
