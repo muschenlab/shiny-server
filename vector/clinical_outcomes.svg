@@ -11,9 +11,9 @@
    viewBox="0 0 198.425 198.425"
    enable-background="new 0 0 198.425 198.425"
    xml:space="preserve"
-   sodipodi:docname="prognosis.svg"
+   sodipodi:docname="clinical_outcomes.svg"
    inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
-   inkscape:export-filename="../../tmp_website/assets/images/Portfolio/prognosis.png"
+   inkscape:export-filename="../assets/images/Portfolio/clinical_outcomes.png"
    inkscape:export-xdpi="290"
    inkscape:export-ydpi="290"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -26,7 +26,7 @@
    xmlns:dc="http://purl.org/dc/elements/1.1/"><metadata
    id="metadata135"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
    id="defs133">
 	
 	
@@ -128,13 +128,13 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1390"
-   inkscape:window-height="1007"
+   inkscape:window-height="1006"
    id="namedview131"
    showgrid="false"
    showguides="false"
    inkscape:zoom="2.4402295"
-   inkscape:cx="142.40464"
-   inkscape:cy="44.872829"
+   inkscape:cx="142.81444"
+   inkscape:cy="45.077727"
    inkscape:window-x="250"
    inkscape:window-y="25"
    inkscape:window-maximized="0"
