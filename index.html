@@ -1,108 +1,405 @@
-<!doctype html5>
-<html>
-  <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang=""> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
 
-  <title>MuschenLab</title>
+<!--Designerd by: http://bootstrapthemes.co-->
 
-  <link rel="icon" type="image/png" href="assets/moose.png">
+<head>
+	<meta charset="utf-8">
+	<title>MuschenLab</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="assets/images/favicon.png">
 
-  <link href="assets/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/bundle.css" rel="stylesheet">
+	<!--Google Font link-->
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Raleway:400,600,700" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
 
-  <meta property="og:title" content="MuschenLab">
-  <meta property="og:name" content="MLS">
 
-<style type="text/css">
-body {
-  background: url("assets/bg.jpg") no-repeat center center fixed;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-</style>
+	<link rel="stylesheet" href="assets/css/slick.css">
+	<link rel="stylesheet" href="assets/css/slick-theme.css">
+	<link rel="stylesheet" href="assets/css/animate.css">
+	<link rel="stylesheet" href="assets/css/fonticons.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/magnific-popup.css">
+	<link rel="stylesheet" href="assets/css/bootsnav.css">
+
+
+	<!--For Plugins external css-->
+	<!--<link rel="stylesheet" href="assets/css/plugins.css" />-->
+
+	<!--Theme custom css -->
+	<link rel="stylesheet" href="assets/css/style.css">
+	<!--<link rel="stylesheet" href="assets/css/colors/maron.css">-->
+
+	<!--Theme Responsive css-->
+	<link rel="stylesheet" href="assets/css/responsive.css" />
+
+	<script src="assets/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
 </head>
 
-<body>
-<div class="container">
-  <nav class="navbar" role="navigation">
-    <div class="container-fluid">
-  <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-          <span class="sr-only">Toggle navigation</span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand selected" href="/">
-          <img src="assets/nav.png">
-        </a>
-      </div>
+<body data-spy="scroll" data-target=".navbar-collapse">
 
-  <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="docs/index.html">Docs</a></li>
-          <li><a href="https://github.com/MERobinson/shiny_server">GitHub</a></li>
-          <li><a href="data/index.html">Data</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-</div>
 
-<div class="navhr"></div>
+	<!-- Preloader -->
+	<div id="loading">
+		<div id="loading-center">
+			<div id="loading-center-absolute">
+				<div class="object" id="object_one"></div>
+				<div class="object" id="object_two"></div>
+				<div class="object" id="object_three"></div>
+				<div class="object" id="object_four"></div>
+			</div>
+		</div>
+	</div>
+	<!--End off Preloader -->
 
-<div class="container main-content">
 
-  <div id = "epic">
-  </div>
-  <div id="grid" style="position: relative; margin-bottom: 20px;">
-    <a href="app_immgen" target="_blank">
-        <img class="hex" src="hexagons/immgen.png" alt="objs.org">
-    </a>
-    <a href="app_prognosis" target="_blank">
-        <img class="hex" src="hexagons/prognosis.png" alt="objs.org">
-    </a>
-    <a href="app_mile" target="_blank">
-        <img class="hex" src="hexagons/mile.png" alt="objs.org">
-    </a>
-    <a href="app_geo" target="_blank">
-        <img class="hex" src="hexagons/geo.png" alt="objs.org">
-    </a>
-    <a href="app_ccle" target="_blank">
-        <img class="hex" src="hexagons/ccle.png" alt="objs.org">
-    </a>
-    <a href="app_prism" target="_blank">
-        <img class="hex" src="hexagons/prism.png" alt="objs.org">
-    </a>
-    <a href="app_scwb" target="_blank">
-        <img class="hex" src="hexagons/scwb.png" alt="objs.org">
-    </a>
-    <a href="app_surfprot" target="_blank">
-        <img class="hex" src="hexagons/surfprot.png" alt="objs.org">
-    </a>
-    <a href="app_expr" target="_blank">
-        <img class="hex" src="hexagons/expr.png" alt="objs.org">
-    </a>
-    <a href="app_ctdep" target="_blank">
-        <img class="hex" src="hexagons/ctDEP.png" alt="objs.org">
-    </a>
-  </div>
+	<div class="culmn">
+		<!--Home page style-->
 
-</div>
-<script src="https://code.jquery.com/jquery-2.2.0.min.js" type="text/javascript"></script>
-<script src="assets/shuffle.js" type="text/javascript"></script>
-<script src="assets/bundle.js"></script>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-57394743-1', 'auto');
-  ga('send', 'pageview');
 
-</script>
+		<nav class="navbar navbar-light navbar-expand-lg  navbar-fixed white no-background bootsnav">
+			<!-- Start Top Search -->
+			<div class="top-search">
+				<div class="container">
+					<div class="input-group">
+						<span class="input-group-addon"><i class="fa fa-search"></i></span>
+						<input type="text" class="form-control" placeholder="Search">
+						<span class="input-group-addon close-search"><i class="fa fa-times"></i></span>
+					</div>
+				</div>
+			</div>
+			<!-- End Top Search -->
 
-</body></html>
+			<div class="container">
+
+				<!-- Start Header Navigation -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-menu">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+
+					<a class="navbar-brand" href="#brand">
+
+                            <img src="assets/images/logo.png" class="logo logo-display m-top-10" alt="">
+                            <img src="assets/images/logo.jpg" class="logo logo-scrolled" alt="">
+
+                        </a>
+				</div>
+				<!-- End Header Navigation -->
+
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="navbar-menu">
+					<ul class="nav navbar-nav navbar-right" data-in="fadeInDown" data-out="fadeOutUp">
+						<li><a href="#hello">Home</a></li>
+						<li><a href="#research">Research</a></li>
+						<li><a href="#apps">Apps</a></li>
+						<li><a href="#papers">Papers</a></li>
+						<li><a href="#members">Lab members</a></li>
+						<li><a href="#contact">Contact</a></li>
+					</ul>
+				</div>
+				<!-- /.navbar-collapse -->
+			</div>
+
+		</nav>
+
+		<!--Home Sections-->
+
+		<section id="hello" class="home bg-mega">
+			<div class="overlay"></div>
+			<div class="container">
+				<div class="row">
+					<div class="main_home">
+						<div class="home_text">
+							<h1 class="text-white">Mechanisms of B-cell dynamics & <br /> Oncogenic signaling</h1>
+						</div>
+
+						<div class="home_btns m-top-40">
+							<a href="#papers" target="_blank" class="btn btn-primary m-top-20">READ OUR PAPERS</a>
+							<a href="#apps" class="btn btn-default m-top-20">EXPLORE OUR DATA</a>
+						</div>
+
+					</div>
+				</div>
+				<!--End off row-->
+			</div>
+			<!--End off container -->
+		</section>
+		<!--End off Home Sections-->
+
+
+		<!--About Sections-->
+		<section id="research" class="about roomy-100">
+			<div class="container">
+				<div class="row">
+					<div class="main_about">
+						<div class="col-md-6">
+							<div class="about_content">
+								<h2>OUR RESEARCH</h2>
+								<div class="separator_left"></div>
+
+								<p>Less than 1 in 2,000 cells in the human body are B-cells.
+									Once activated, B-cells divide at a faster rate than any other cell type and produce antibodies to neutralize foreign pathogens.
+									Unlike other cell types, B-cells undergo multiple rounds of somatic gene recombination and hypermutation of immunoglobulin genes to evolve antibodies that bind to antigen with high affinity.
+									Hence, adaptive immune protection by B-cells comes with an approximately 300-fold increased risk of malignant transformation compared to other cell types.
+									B-cell leukemia/lymphoma represent the most frequent type of cancer in children (31%) and account for 10% of all cancers in adults.</p>
+
+
+								<p>To prevent the production of harmful autoantibodies and autoimmune disease, autoreactive B-cells and pre-malignant clones are eliminated by a process termed negative selection.
+									Despite strict and rigorous negative selection, B-cells frequently give rise to autoimmune diseases and B-cell malignancies such as leukemia and lymphoma.
+									Since humans can live without B-cells for extended periods of time, the Müschen laboratory systematically investigated lineage-specific vulnerabilities that are common in B-cell leukemia/lymphoma but not any other cell type.
+									Contrary to established dogma, these mechanisms are not only active in preventing autoimmune disease but also represent a novel class of therapeutic oncogenic targets in malignant B-cell tumors.
+									Over the past five years, the Müschen Laboratory established innovative conceptual frameworks for the understanding of B-cell signaling mechanisms and negative selection, some of which are summarized to the right: </p>
+
+								<div class="about_btns m-top-40">
+									<a href="" class="btn btn-primary">READ OUR PAPERS NOW</a>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="about_accordion wow fadeIn">
+								<div id="faq_main_content" class="faq_main_content">
+									<h6><i class="fa fa-angle-right"></i> METABOLIC GATEKEEPERS </h6>
+									<div>
+										<div class="content">
+											<p>B-cells not only have the smallest cytoplasmic volume but also fewer mitochondria than any other cell type.
+												The new paradigm on ‘metabolic gatekeeper functions’ is based on B-lymphoid transcription factors repressing or limiting glucose-uptake and energy-supply to set
+												low thresholds for negative selection of autoreactive and premalignant B-cells
+												(Chan et al., 2017; Pan et al., 2021). </p>
+
+										</div>
+									</div>
+									<!-- End off accordion item-1 -->
+
+									<h6 class="open"><i class="fa fa-angle-right"></i> GOLDILOCKS PRINCIPLE </h6>
+									<div class="open">
+										<div class="content">
+											<p>Thresholds of B-cell selection are based on signaling strength of the B-cell receptor (BCR).
+												While B-cells with a non-functional BCR lack critical BCR-signals for survival, autoreactive B-cells elicit overwhelming strong BCR-signals.
+												According to a Goldilocks principle of B-cell selection, only clones with intermediate BCR-signaling strength (“just right”) are positively selected to survive and proliferate.
+												Targeted hyperactivation of BCR-downstream kinases mimics excessive signaling strength from autoreactive BCRs, thus triggering negative selection.
+												Traditional cancer therapy is focused on kinase inhibitors to suppress oncogenic signaling so kinase hyperactivation is a novel approach for targeted therapy in B-cell malignancies
+												(Müschen 2018; Müschen 2019). </p>
+										</div>
+									</div>
+									<!-- End off accordion item-2 -->
+
+									<h6> <i class="fa fa-angle-right"></i> PI3K FEEDBACK LOOP</h6>
+									<div>
+										<div class="content">
+											<p>The endosomal protein IFITM3 was found to play a role as a central scaffold for lipid-raft assembly and surface-expression of rafts-associated receptors during B-cell activation.
+												Recruitment of IFITM3 is critical for the initiation of PI3K-signaling, antibody affinity maturation and oncogenic B-cell transformation
+												(Lee et al., 2020). </p>
+										</div>
+									</div>
+									<!-- End off accordion item-3 -->
+
+									<h6><i class="fa fa-angle-right"></i> DIVERGENT ONCOGENIC SIGNALING </h6>
+									<div>
+										<div class="content">
+											<p>Only mutations that converge on one central pathway promote leukemia-progression.
+												Genetic reactivation of divergent (suppressed) pathways engage conflicting biochemical and transcriptional programs and subvert leukemia development.
+												Pharmacological pathway-reactivation to create a diverse signaling environment can be leveraged as a new therapeutic to prevent leukemia progression
+												(Chan et al, 2020).</p>
+										</div>
+									</div>
+									<!-- End off accordion item-4 -->
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--End off row-->
+			</div>
+			<!--End off container -->
+			<br />
+
+		</section>
+		<!--End off About section -->
+
+		<!--Apps Section-->
+		<section id="apps" class="portfolio lightbg">
+			<div class="container">
+				<div class="row">
+					<div class="main_portfolio roomy-100">
+						<div class="col-md-8 mr-md-auto ml-md-auto">
+							<div class="head_title text-center">
+								<h2>APPS</h2>
+								<div class="separator_auto"></div>
+								<p>As part of our commitment to open science we created a suite of simple to use apps to allow wet-lab scientists to easily explore
+									and visualize data generated in our lab, as well as tools to explore public data related to B-cell malignancies.
+									Hover over the app logos below to learn more.</p>
+							</div>
+						</div>
+						<div class="row">
+							<div class="portfolio_content">
+								<div class="row">
+
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<img src="assets/images/Portfolio/ctDEP.png" alt="" />
+											<div class="portfolio_hover text-center">
+												<h6 class="text-uppercase text-white">ctDEP</h6>
+												<p class=" text-white">Compare protein-dependency in your cell-type of interest to other tumor-types to identify cell-type specific therapeutic targets
+													                     Integrates cell-type dependency data from CRISPR, RNAi & drug screens.</p>
+												<div class="portfolio_hover_icon">
+													<a href="app_ctdep"><i class="fa fa-expand"></i></a>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<img src="assets/images/Portfolio/internal.png" alt="" />
+											<div class="portfolio_hover text-center">
+												<h6 class="text-uppercase text-white">Internal data</h6>
+												<p class=" text-white">Vizualize & explore functional studies from our lab</p>
+                        <a href=""></a>
+												<div class="portfolio_hover_icon">
+													<a href="app_internal"><i class="fa fa-expand"></i></a>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<img src="assets/images/Portfolio/prognosis.png" alt="" />
+											<div class="portfolio_hover text-center">
+												<h6 class="text-uppercase text-white">Prognosis</h6>
+												<p class=" text-white">Database of clinical micro-array based studies for exploring the prognostic effects of gene expression</p>
+												<div class="portfolio_hover_icon">
+													<a href="app_prognosis"><i class="fa fa-expand"></i></a>
+												</div>
+											</div>
+										</div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--End off row -->
+			</div>
+			<!--End off container -->
+		</section>
+		<!-- End off Portfolio section-->
+
+		<!--Blog Section-->
+		<section id="blog" class="blog">
+			<div class="container">
+				<div class="row">
+					<div class="main_blog text-center roomy-100">
+						<div class="col-sm-8 mr-sm-auto ml-sm-auto">
+							<div class="head_title text-center">
+								<h2>SELECTED PUBLICATIONS</h2>
+								<div class="separator_auto"></div>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-4">
+								<div class="blog_item m-top-20">
+									<div class="blog_item_img">
+										<img src="assets/images/Blog/ifitm3.png" alt="IFITM3" />
+									</div>
+									<div class="blog_text roomy-40">
+										<h5>IFITM3 functions as PIP3-scaffold to amplify PI3K signaling in B-cells</h5>
+										<p><a href="https://www.nature.com/articles/s41586-020-2884-6">The endosomal protein IFITM3 was found to play a role as a central scaffold for lipid-raft assembly and surface-expression of rafts-associated receptors during B-cell activation.
+											Recruitment of IFITM3 is critical for the initiation of PI3K-signaling, antibody affinity maturation and oncogenic B-cell transformation </a></p>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="blog_item m-top-20">
+									<div class="blog_item_img">
+										<img src="assets/images/Blog/staterk.png" alt="STAT_ERK" />
+									</div>
+									<div class="blog_text roomy-40">
+										<h5>Signalling input from divergent pathways subverts malignant B-cell transformation</h5>
+										<p><a href="https://www.nature.com/articles/s41586-020-2513-4">Only mutations that converge on one central pathway promote leukemia-progression.
+											Genetic reactivation of divergent (suppressed) pathways engage conflicting biochemical and transcriptional programs and subvert leukemia development.
+											Pharmacological pathway-reactivation to create a diverse signaling environment can be leveraged as a new therapeutic to prevent leukemia progression
+											(Chan et al, 2020).</a></p>
+									</div>
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+				<!--End off row -->
+			</div>
+			<!--End off container -->
+		</section>
+		<!-- End off Blog section-->
+
+
+		<!--Contact Us Section-->
+		<section id="contact" class="contact bg-mega fix">
+			<div class="container">
+				<div class="row">
+					<div class="main_contact roomy-100 text-white">
+						<div class="col-md-4">
+							<div class="rage_widget">
+								<div class="widget_head">
+									<h3 class="text-white">Connect with us</h3>
+									<div class="separator_small"></div>
+								</div>
+								<p>Follow us on Twitter, LinkedIn, or GitHub, or see available positions & contact us via our Yale website </p>
+
+								<div class="widget_socail m-top-30">
+									<ul class="list-inline-item">
+										<li><a href=""><i class="fa fa-twitter"></i></a></li>
+										<li><a href=""><i class="fa fa-linkedin"></i></a></li>
+										<li><a href=""><i class="fa fa-linkedin"></i></a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--End off row -->
+			</div>
+			<!--End off container -->
+		</section>
+		<!--End off Contact Section-->
+
+		<!-- scroll up-->
+		<div class="scrollup">
+			<a href="#"><i class="fa fa-chevron-up"></i></a>
+		</div>
+		<!-- End off scroll up -->
+
+	</div>
+
+	<!-- JS includes -->
+
+	<script src="assets/js/vendor/jquery-1.11.2.min.js"></script>
+	<script src="assets/js/vendor/popper.min.js"></script>
+	<script src="assets/js/vendor/bootstrap.min.js"></script>
+	<script src="assets/js/jquery.magnific-popup.js"></script>
+	<script src="assets/js/jquery.easing.1.3.js"></script>
+	<script src="assets/js/slick.min.js"></script>
+	<script src="assets/js/jquery.collapse.js"></script>
+	<script src="assets/js/bootsnav.js"></script>
+	<script src="assets/js/plugins.js"></script>
+	<script src="assets/js/main.js"></script>
+
+</body>
+
+</html>
