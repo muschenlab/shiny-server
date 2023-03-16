@@ -68,18 +68,18 @@ body {
 ------------------------------------------*/
 
 /*
-.page-content, 
+.page-content,
 section { overflow: hidden; }*/
 
 /*
-    On Scroll Animations 
+    On Scroll Animations
 ------------------------------------------*/
 
 /*.animated { visibility: hidden; }
 .visible { visibility: visible; }*/
 
 /*
-    Spacing & Alignment 
+    Spacing & Alignment
 ------------------------------------------*/
 
 .roomy-100 {
@@ -110,6 +110,11 @@ section { overflow: hidden; }*/
 .roomy-40 {
 	padding-top: 40px;
 	padding-bottom: 40px;
+}
+
+.roomy-30 {
+	padding-top: 30px;
+	padding-bottom: 30px;
 }
 
 
@@ -222,6 +227,7 @@ a {
 }
 
 p {
+	color: #666666;
 	margin: 0 0 15px;
 }
 
@@ -279,13 +285,18 @@ select:-webkit-autofill {
 
 h1,
 h2,
-h3,
+h3 {
+	margin: 0;
+	font-family: 'Montserrat', sans-serif;
+	color: #1a1a1a;
+	margin-bottom: 10px;
+}
 h4,
 h5,
 h6 {
 	margin: 0;
 	font-family: 'Montserrat', sans-serif;
-	color: #1a1a1a;
+	color: #999999;
 	margin-bottom: 10px;
 }
 
@@ -1171,14 +1182,14 @@ Home Section style
 
 .home {
 	background: url(../images/background/header.jpg) no-repeat bottom center;
-	background-size: cover;
+	background-size: auto;
 	position: relative;
 }
 
 .main_home {
 	overflow: hidden;
-	padding-top: 300px;
-	padding-bottom: 230px;
+	padding-top: 200px;
+	padding-bottom: 200px;
 	position: relative;
 	z-index: 1;
 }
