@@ -154,11 +154,11 @@ pickcols <- function(pal, n) {
 ui <- fluidPage(
     
     # title
-    title = "ctDEP", 
+    title = "Drug Discovery", 
     theme = shinytheme("cosmo"),
     titlePanel(tags$h2(tags$a(
         imageOutput("icon", inline = TRUE),
-        href="http://10.197.211.94:80"), "ctDEP")),
+        href="http://137.184.200.69:3838/"), "Drug Discovery")),
     
     # change colors for DT row/column selection
     tags$style(HTML('table.dataTable tr.selected td{background-color: #B9869F99 !important;}')),
@@ -348,7 +348,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
     
     # icon
-    output$icon <- renderImage(list(src = "../hexagons/jelly.png",
+    output$icon <- renderImage(list(src = "../assets/images/hex/jelly.png",
                                     height = "95px", width = "85px"), 
                                deleteFile = F)
     

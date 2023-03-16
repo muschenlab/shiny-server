@@ -67,12 +67,12 @@ ui <- function(request) {
   fluidPage(
     
     # title
-    title = "Prognosis", 
+    title = "Clinical outcomes", 
     theme = shinytheme("flatly"),
     titlePanel(tags$h3(tags$a(
       imageOutput("icon", height = "50px", width = "50px", inline = TRUE),
-      href="http://10.197.211.94:80"), 
-      "Prognosis data")),
+      href="http://137.184.200.69:3838/"), 
+      "Clinical outcomes")),
     
     sidebarLayout(
       
@@ -137,7 +137,7 @@ ui <- function(request) {
 server <- function(input, output, session) {
 
   # icon
-  output$icon <- renderImage(list(src = "../hexagons/prognosis.png",
+  output$icon <- renderImage(list(src = "../assets/images/hex/clinical_outcomes.png",
                                   height = "84px", width = "72px"), 
                              deleteFile = F)
   
