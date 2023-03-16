@@ -57,8 +57,8 @@ ui <- fluidPage(
   theme = shinytheme("flatly"),
   titlePanel(tags$h3(tags$a(
     imageOutput("icon", inline = TRUE),
-    href="http://10.197.211.94:80"), 
-    "Cancer Cell Line Encyclopedia")),
+    href="http://137.184.200.69:3838"), 
+    "Cancer Cell Line Phenotypes")),
   
   tabsetPanel(
     tabPanel("Plot", align = "center",
@@ -99,7 +99,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # icon
-  output$icon <- renderImage(list(src = "../hexagons/ccle.png",
+  output$icon <- renderImage(list(src = "../assets/images/hex/cl_phenotypes.png",
                                   height = "90px", width = "85px"), 
                              deleteFile = F)
   
