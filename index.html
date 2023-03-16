@@ -63,42 +63,19 @@
 		<!--Home page style-->
 
 		<nav class="navbar navbar-light navbar-expand-lg  navbar-fixed white no-background bootsnav">
-			<!-- Start Top Search -->
-			<div class="top-search">
-				<div class="container">
-					<div class="input-group">
-						<span class="input-group-addon"><i class="fa fa-search"></i></span>
-						<input type="text" class="form-control" placeholder="Search">
-						<span class="input-group-addon close-search"><i class="fa fa-times"></i></span>
-					</div>
-				</div>
-			</div>
-			<!-- End Top Search -->
 
 			<div class="container">
-
-				<!-- Start Header Navigation -->
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-					<a class="navbar-brand" href="#brand">
-          	<img src="assets/images/logo.png" class="logo logo-display m-top-10" alt="">
-            <img src="assets/images/logo.jpg" class="logo logo-scrolled m-top-10" alt="">
-          </a>
-				</div>
-				<!-- End Header Navigation -->
 
 				<!-- Collect the nav links, forms, and other content for toggling -->
 				<div class="collapse navbar-collapse" id="navbar-menu">
 					<ul class="nav navbar-nav navbar-right" data-in="fadeInDown" data-out="fadeOutUp">
 						<li><a href="#hello">Home</a></li>
-						<li><a href="#research">Research</a></li>
+						<li><a href="https://medicine.yale.edu/lab/muschen" target="_blank">Müschen Lab</a></li>
 						<li><a href="#apps">Apps</a></li>
-						<li><a href="#papers">Papers</a></li>
-						<li><a href="#members">Lab members</a></li>
+						<li><a href="#research">Research</a></li>
+						<li><a href="https://medicine.yale.edu/lab/muschen/publications" target="_blank">Publications</a></li>
+						<li><a href="https://www.biorxiv.org/search/Markus%252BMueschen" target="_blank">Pre-prints</a></li>
+						<li><a href="https://medicine.yale.edu/lab/muschen/members" target="_blank">Lab members</a></li>
 						<li><a href="#contact">Contact</a></li>
 					</ul>
 				</div>
@@ -115,14 +92,8 @@
 				<div class="row">
 					<div class="main_home">
 						<div class="home_text">
-							<h1 class="text-white">Mechanisms of B-cell dynamics & Oncogenic signaling</h1>
+							<h2 class="text-white">Mechanisms of B-cell dynamics & Oncogenic signaling</h2>
 						</div>
-
-						<div class="home_btns m-top-40">
-							<a href="#papers" target="_blank" class="btn-primary m-top-20">READ OUR PAPERS</a>
-							<a href="#apps" target="_blank" class="btn-default m-top-20">EXPLORE OUR DATA</a>
-						</div>
-
 					</div>
 				</div>
 				<!--End off row-->
@@ -132,8 +103,69 @@
 		<!--End off Home Sections-->
 
 
-		<!--About Sections-->
-		<section id="research" class="about roomy-100">
+		<!--Apps Section-->
+		<section id="apps" class="portfolio lightbg">
+			<div class="container">
+				<div class="row">
+					<div class="main_portfolio roomy-30">
+						<div class="col-md-8 mr-md-auto ml-md-auto">
+							<div class="head_title text-center">
+								<h3>APPS</h3>
+								<div class="separator_auto"></div>
+								<h5>As part of our commitment to open science we created a suite of simple apps to allow wet-lab scientists to explore
+									and visualize data generated in our lab, as well as tools to explore public data related to B-cell malignancies.
+									All code is openly available on our <a href="https://github.com/muschenlab" style="color:#6688ff;">GitHub page</a></h5>
+							</div>
+						</div>
+						<div class="row">
+							<div class="portfolio_content">
+								<div class="row text-center">
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<a href="drug_discovery" target="_blank">
+											<img src="assets/images/hex/drug_discovery.png" alt=""/>
+											<h6>Identify cell-type specific therapeutic targets: CRISPR, RNAi & drug screening data</h6>
+										</div>
+									</div>
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<a href="cl_phenotypes" target="_blank">
+											<img src="assets/images/hex/cl_phenotypes.png" alt=""/>
+											<h6>Molecular phenotypes of cell lines: RNAseq, proteomics & metabolomics data</h6>
+										</div>
+									</div>
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<a href="clinical_outcomes" target="_blank">
+											<img src="assets/images/hex/clinical_outcomes.png" alt=""/>
+											<h6>Explore the prognostic effects of gene expression: patient micro-array data</h6>
+										</div>
+									</div>
+
+									<div class="col-md-3">
+										<div class="portfolio_item">
+											<a href="functional_studies" target="_blank">
+											<img src="assets/images/hex/functional_studies.png" alt=""/>
+											<h6>Vizualize & explore functional studies from our lab: RNAseq, proteomics, micro-array</h6>
+										</div>
+									</div>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!--End off row -->
+			</div>
+			<!--End off container -->
+		</section>
+		<!-- End off Apps section-->
+
+		<!--Research Sections-->
+		<section id="research" class="about roomy-50">
 			<div class="container">
 				<div class="row">
 					<div class="main_about">
@@ -155,16 +187,13 @@
 									Contrary to established dogma, these mechanisms are not only active in preventing autoimmune disease but also represent a novel class of therapeutic oncogenic targets in malignant B-cell tumors.
 									Over the past five years, the Müschen Laboratory established innovative conceptual frameworks for the understanding of B-cell signaling mechanisms and negative selection, some of which are summarized to the right: </p>
 
-								<div class="about_btns m-top-40">
-									<a href="" class="btn btn-primary">READ OUR PAPERS NOW</a>
-								</div>
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="about_accordion wow fadeIn">
 								<div id="faq_main_content" class="faq_main_content">
-									<h6><i class="fa fa-angle-right"></i> METABOLIC GATEKEEPERS </h6>
-									<div>
+									<h6 class="open"><i class="fa fa-angle-right"></i> METABOLIC GATEKEEPERS </h6>
+									<div class="open">
 										<div class="content">
 											<p>B-cells not only have the smallest cytoplasmic volume but also fewer mitochondria than any other cell type.
 												The new paradigm on ‘metabolic gatekeeper functions’ is based on B-lymphoid transcription factors repressing or limiting glucose-uptake and energy-supply to set
@@ -175,8 +204,8 @@
 									</div>
 									<!-- End off accordion item-1 -->
 
-									<h6 class="open"><i class="fa fa-angle-right"></i> GOLDILOCKS PRINCIPLE </h6>
-									<div class="open">
+									<h6><i class="fa fa-angle-right"></i> GOLDILOCKS PRINCIPLE </h6>
+									<div>
 										<div class="content">
 											<p>Thresholds of B-cell selection are based on signaling strength of the B-cell receptor (BCR).
 												While B-cells with a non-functional BCR lack critical BCR-signals for survival, autoreactive B-cells elicit overwhelming strong BCR-signals.
@@ -219,142 +248,7 @@
 			<br />
 
 		</section>
-		<!--End off About section -->
-
-		<!--Apps Section-->
-		<section id="apps" class="portfolio lightbg">
-			<div class="container">
-				<div class="row">
-					<div class="main_portfolio roomy-100">
-						<div class="col-md-8 mr-md-auto ml-md-auto">
-							<div class="head_title text-center">
-								<h2>APPS</h2>
-								<div class="separator_auto"></div>
-								<p>As part of our commitment to open science we created a suite of simple to use apps to allow wet-lab scientists to easily explore
-									and visualize data generated in our lab, as well as tools to explore public data related to B-cell malignancies. </p>
-								<p>All code is openly available on our <a href="#contact">GitHub page</a></p>
-								<p>Hover over the app logos below to learn more.</p>
-							</div>
-						</div>
-						<div class="row">
-							<div class="portfolio_content">
-								<div class="row">
-
-
-									<div class="col-md-3">
-										<div class="portfolio_item">
-											<img src="assets/images/hex/drug_discovery.png" alt="" />
-											<div class="portfolio_hover text-center">
-												<h6 class="text-uppercase text-white">Drug discovery</h6>
-												<p class=" text-white">Compare protein-dependency in your cell-type of interest to other tumor-types to identify cell-type specific therapeutic targets
-													                     Integrates cell-type dependency data from CRISPR, RNAi & drug screens.</p>
-												<div class="portfolio_hover_icon">
-													<a href="drug_discovery"><i class="fa fa-expand"></i></a>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="col-md-3">
-										<div class="portfolio_item">
-											<img src="assets/images/hex/functional_studies.png" alt="" />
-											<div class="portfolio_hover text-center">
-												<h6 class="text-uppercase text-white">Functional studies</h6>
-												<p class=" text-white">Vizualize & explore functional studies from our lab</p>
-                        <a href=""></a>
-												<div class="portfolio_hover_icon">
-													<a href="functional_studies"><i class="fa fa-expand"></i></a>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="col-md-3">
-										<div class="portfolio_item">
-											<img src="assets/images/hex/clinical_outcomes.png" alt="" />
-											<div class="portfolio_hover text-center">
-												<h6 class="text-uppercase text-white">Clinical outcomes</h6>
-												<p class=" text-white">Database of clinical micro-array based studies for exploring the prognostic effects of gene expression</p>
-												<div class="portfolio_hover_icon">
-													<a href="clinical_outcomes"><i class="fa fa-expand"></i></a>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div class="col-md-3">
-										<div class="portfolio_item">
-											<img src="assets/images/hex/cl_phenotypes.png" alt="" />
-											<div class="portfolio_hover text-center">
-												<h6 class="text-uppercase text-white">Cell line phenotypes</h6>
-												<p class=" text-white">Molecular phenotype data (RNAseq, proteomics, metabolomics) on cancer cell lines</p>
-												<div class="portfolio_hover_icon">
-													<a href="cl_phenotypes"><i class="fa fa-expand"></i></a>
-												</div>
-											</div>
-										</div>
-									</div>
-
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<!--End off row -->
-			</div>
-			<!--End off container -->
-		</section>
-		<!-- End off Portfolio section-->
-
-		<!--Blog Section-->
-		<section id="blog" class="blog">
-			<div class="container">
-				<div class="row">
-					<div class="main_blog text-center roomy-100">
-						<div class="col-sm-8 mr-sm-auto ml-sm-auto">
-							<div class="head_title text-center">
-								<h2>SELECTED PUBLICATIONS</h2>
-								<div class="separator_auto"></div>
-							</div>
-						</div>
-
-						<div class="row">
-							<div class="col-md-4">
-								<div class="blog_item m-top-20">
-									<div class="blog_item_img">
-										<img src="assets/images/ss/ifitm3.png" alt="IFITM3" />
-									</div>
-									<div class="blog_text roomy-40">
-										<h5>IFITM3 functions as PIP3-scaffold to amplify PI3K signaling in B-cells</h5>
-										<p><a href="https://www.nature.com/articles/s41586-020-2884-6">The endosomal protein IFITM3 was found to play a role as a central scaffold for lipid-raft assembly and surface-expression of rafts-associated receptors during B-cell activation.
-											Recruitment of IFITM3 is critical for the initiation of PI3K-signaling, antibody affinity maturation and oncogenic B-cell transformation </a></p>
-									</div>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="blog_item m-top-20">
-									<div class="blog_item_img">
-										<img src="assets/images/ss/staterk.png" alt="STAT_ERK" />
-									</div>
-									<div class="blog_text roomy-40">
-										<h5>Signalling input from divergent pathways subverts malignant B-cell transformation</h5>
-										<p><a href="https://www.nature.com/articles/s41586-020-2513-4">Only mutations that converge on one central pathway promote leukemia-progression.
-											Genetic reactivation of divergent (suppressed) pathways engage conflicting biochemical and transcriptional programs and subvert leukemia development.
-											Pharmacological pathway-reactivation to create a diverse signaling environment can be leveraged as a new therapeutic to prevent leukemia progression
-											(Chan et al, 2020).</a></p>
-									</div>
-								</div>
-							</div>
-						</div>
-
-					</div>
-				</div>
-				<!--End off row -->
-			</div>
-			<!--End off container -->
-		</section>
-		<!-- End off Blog section-->
-
+		<!--End off Research section -->
 
 		<!--Contact Us Section-->
 		<section id="contact" class="contact bg-mega fix">
@@ -367,7 +261,7 @@
 									<h3 class="text-white">Connect with us</h3>
 									<div class="separator_small"></div>
 								</div>
-								<p>Follow us on Twitter, LinkedIn, or GitHub, or see available positions & contact us via our Yale website </p>
+								<p style="color:white;">Follow us on Twitter, LinkedIn, or GitHub, or see available positions & contact us via our Yale website </p>
 
 								<div class="widget_socail m-top-30">
 									<ul class="list-inline-item">
