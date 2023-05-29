@@ -1,9 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(shinythemes)
-library(shinyWidgets)
 library(shinycssloaders)
-library(colourpicker)
 library(tidyverse)
 library(DT)
 library(rvg)
@@ -14,9 +12,9 @@ library(SummarizedExperiment)
 ################################### Setup #####################################
 
 # load data
-load("dep_data/depdata.rda")
+load("data/depdata.rda")
 
-### tmp - quick fixes for data issues
+### tmp - quick fix for data issues
 data$si <- data$si %>% 
     dplyr::rename(COSMIC_ID = "COSMIC.identifier") %>%
     filter(!ds_type %in% c("Testicular", "Embryonal","NOS","Unknown",
@@ -81,12 +79,12 @@ filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
     return(tres[[stat]])
 }
 
-# # for testing
-# reactvals <- list()
-# reactvals$ct1_si <- data$si[grep("MCL", data$si$ds_subtype),]
-# reactvals$ct2_si <- data$si[which(data$si$ds_type == "Colorectal"),]
-# reactvals$ct1 <- "Mantle cell lymphoma (MCL)"
-# reactvals$ct2 <- "Colorectal"
+# for testing
+reactvals <- list()
+reactvals$ct1_si <- data$si[grep("MCL", data$si$ds_subtype),]
+reactvals$ct2_si <- data$si[which(data$si$ds_type == "Colorectal"),]
+reactvals$ct1 <- "Mantle cell lymphoma (MCL)"
+reactvals$ct2 <- "Colorectal"
 
 # reactive values
 reactvals <- reactiveValues(drug_summary = data.frame(),

@@ -14,3 +14,4 @@ data/H3K27ac/*ChIPseq.bw
 
 # app data
 **/*_data/
+**/data/
