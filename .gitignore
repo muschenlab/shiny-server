@@ -10,7 +10,8 @@
 node_modules
 
 # processed hosted data
-data/H3K27ac/*ChIPseq.bw
+data
+other_apps
 
 # app data
-**/*_data/
+**/data/
