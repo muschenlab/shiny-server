@@ -458,6 +458,7 @@ server <- function(input, output, session) {
       orgdb <- org.Hs.eg.db::org.Hs.eg.db
       geneinfo <- AnnotationDbi::select(orgdb, keys = gene_symbols,
                                         keytype = "SYMBOL", column = "ENTREZID")
+      print(geneinfo)
       reactvals$target_gene_symbols <- gene_symbols
       reactvals$target_gene_ids <- unique(geneinfo$ENTREZID)
       return(cpd_name)
@@ -619,8 +620,8 @@ server <- function(input, output, session) {
         metrics <- get_sel_cpd_metrics()
         if(is_empty(metrics) | is_empty(reactvals$ct1)) return(NULL)
         metrics <- metrics %>%
-            select(sample_id, treatment_id, cpd_name, ## add cell line annotation here also
-                   logEC50, DSS1, DSS2, DSS3, DSS4) %>%
+          dplyr::select(sample_id, treatment_id, cpd_name, ## add cell line annotation here also
+                        logEC50, DSS1, DSS2, DSS3, DSS4) %>%
         DT::datatable(data = metrics,
                       rownames = F,
                       options = list(lengthMenu = c(5, 10, 25),
