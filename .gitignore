@@ -5,6 +5,7 @@
 .Rapp
 .RData
 .Ruserdata
+._*
 
 # node
 node_modules
