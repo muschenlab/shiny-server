@@ -324,7 +324,7 @@ server <- function(input, output, session) {
       print("cpd_scatter")
       tmp <- load_comparison()
       if(is_empty(reactvals$cpdlvl)) return(NULL)
-      plotdat <- reactvals$cpdlvl
+      plotdat <- reactvals$cpdlvl %>% dplyr::filter(!is.na(cpd_name))
       ct1 <- reactvals$ct1
       ct2 <- reactvals$ct2
       plotdat <- plotdat %>%
@@ -393,6 +393,7 @@ server <- function(input, output, session) {
       content = function(file) {
         drug_summary <- get_sel_cpd()
         if(is_empty(drug_summary)) return(NULL)
+	print(head(drug_summary))
         writexl::write_xlsx(drug_summary, path=file)
       }
     )
