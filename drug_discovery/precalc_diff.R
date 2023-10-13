@@ -337,7 +337,7 @@ lapply(1:nrow(comp), function(compidx) {
     summarise(across(starts_with(c("av","dD","rD","pD")), 
                      ~weighted.mean(., w = frac, na.rm = T)),
               across(starts_with("n_"), ~sum(.)),
-              datasets = paste0(dataset, collapse=";")) %>%
+              datasets = paste0(unique(dataset), collapse=";")) %>%
     ungroup() %>%
     filter(!is.na(rDSS4)) %>%
     mutate(DSS4_prcntl = rank(rDSS4, na.last = F)/length(rDSS4), .before=1) %>%
@@ -374,10 +374,11 @@ lapply(1:nrow(comp), function(compidx) {
   
   #### cpd lvl ####
   tmp1 <- combined %>% 
+    dplyr::filter(!is.na(cpd_name)) %>%
     group_by(cpd_name) %>%
     summarise(pubchem_cid = unique(pubchem_cid),
-              target_genes = paste(gene_symbol, collapse=";"),
-              pathways = unique(pathways),
+              target_genes = paste(unique(gene_symbol), collapse=";"),
+              pathways = paste(unique(pathways), collapse=";"),
               datasets = paste(unique(datasets), collapse=";"),
               DSS4_score = unique(DSS4_prcntl),
               CRISPR_score = mean(CRISPR_prcntl, na.rm=T),

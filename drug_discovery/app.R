@@ -129,7 +129,7 @@ ui <- fluidPage(
                  downloadButton("dl_cpd_summary_xls", label = "Download compounds summary",
                                 style = "font-size:12px;height:30px;padding:5px;"),
                  
-                 # selected compound info
+                 # selected compound ranking info
                  br(),br(),
                  tags$h3("Selected compound:"),
                  fluidRow(align="center", uiOutput("sel_cpd_text")),
@@ -168,63 +168,98 @@ ui <- fluidPage(
 
                  # CRISPR plots
                  br(), br(),
-                 tags$h3("CRISPR:"),
+                 tags$h3("Target Dependency:"),
                  tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-out on viability - ",
                                 "(lower score = more sensitive)")),
                  fluidRow(splitLayout(cellWidths = c("25%", "20%", "28%"),
-                                      plotOutput("crispr_dens", height = 225,
+                                      plotOutput("cpd_crispr_dens", height = 225,
                                                  brush = "crispr_dens_brush"),
-                                      plotOutput("crispr_box_ds", height = 225),
-                                      plotOutput("crispr_box_st", height = 225))),
-                 div(DT::dataTableOutput("cpd_crispr_metrics_dt"),
+                                      plotOutput("cpd_crispr_box_ds", height = 225),
+                                      plotOutput("cpd_crispr_box_st", height = 225))),
+
+                 # RNAi plots
+                 tags$h4("RNAi:"),
+                 tags$h5(paste0("RNAi effect scores indicate the effect of gene knock-down on viability - ",
+                                "(lower scores = more sensitive)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "28%"),
+                                      plotOutput("cpd_rnai_dens", height = 225),
+                                      plotOutput("cpd_rnai_box_ds", height = 225),
+                                      plotOutput("cpd_rnai_box_st", height = 225))),
+                 
+                 # dependency metrics for compound target
+                 div(DT::dataTableOutput("cpd_dep_metrics_dt"),
                      style = "font-size:90%"),
-                 downloadButton("dl_cpd_dep_metrics_xls", label = "XLS",
+                 downloadButton("dl_cpd_dep_metrics_xls", label = "Download dependency metrics",
+                                style = "font-size:12px;height:30px;padding:5px;")
+        ),
+        tabPanel("Dependency",
+
+                 tags$h3("Differential gene dependency scores:"),
+                 tags$h5("Drag a box around points to select genes of interest"),
+                 fluidRow(align="center",
+                          splitLayout(cellWidths = c("30%", "45%"),
+                                      tags$h4("CRISPR"),
+                                      tags$h4("RNAi"))),
+                 fluidRow(align="center",
+                          splitLayout(cellWidths = c("35%", "45%"),
+                                      plotOutput("crispr_scatter", height = 425,
+                                                 brush = "crispr_scatter_brush",
+                                                 hover = "crispr_scatter_hover") %>%
+                                        withSpinner(color = "#D0E6EA99"),
+                                      plotOutput("rnai_scatter", height = 425,
+                                                 brush = "rnai_scatter_brush",
+                                                 hover = "rnai_scatter_hover") %>%
+                                        withSpinner(color = "#D0E6EA99"))),
+                 fluidRow(align="center",
+                          splitLayout(cellWidths = c("50%", "50%"),
+                                      verbatimTextOutput("crispr_scatter_hover_text"),
+                                      verbatimTextOutput("rnai_scatter_hover_text"))),
+
+                 # gene dependency summary table
+                 br(),br(),
+                 tags$h3("Selected genes:"),
+                 tags$h5("Select a row to plot gene dependency accross cell lines below"),
+                 div(DT::dataTableOutput("genedep_summary_dt"),
+                     style = "font-size:90%"),
+                 downloadButton("dl_genedep_summary_xls", label = "Download dependency summary",
                                 style = "font-size:12px;height:30px;padding:5px;"),
-                 # 
-                 # # RNAi plots
-                 # tags$h4("RNAi:"),
-                 # tags$h5(paste0("RNAi effect scores indicate the effect of gene knock-down on viability - ",
-                 #                "(lower scores = more sensitive)")),
-                 # fluidRow(splitLayout(cellWidths = c("25%", "20%", "28%"),
-                 #                      plotOutput("rnai_dens", height = 225),
-                 #                      plotOutput("rnai_box_ds", height = 225),
-                 #                      plotOutput("rnai_box_st", height = 225))),
-                 # div(DT::dataTableOutput("cl_rnaidat"),
-                 #     style = "font-size:90%"),
-                 # downloadButton("dl_cl_rnai_xls", label = "XLS",
-                 #                style = "font-size:12px;height:30px;padding:5px;")
+                 
+                 # selected gene ranking info
+                 br(),br(),
+                 tags$h3("Selected gene:"),
+                 fluidRow(align="center", uiOutput("sel_gene_text")),
+                 
+                 # rankings plot
+                 tags$h4("Differential ranking:"),
+                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively dependent the celltype of interest ",
+                                "is relative to the control population (higher rank = more selective). Three primary metrics are ",
+                                "considered - the CRISPR effect score, RNAi effect score, and drug sensitivity score (DSS).")),
+                 fluidRow(align="center",
+                          plotOutput("metrics_overview_dep", height = 175, width = 400)
+                 ),
+                 
+                 # CRISPR plots
+                 br(), br(),
+                 tags$h3("CRISPR metrics:"),
+                 tags$h5(paste0("CRISPR effect scores indicate the effect of gene knock-out on viability - ",
+                                "(more negative = more dependent on gene)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "28%"),
+                                      plotOutput("crispr_dens_dep", height = 225,
+                                                 brush = "crispr_dens_brush"),
+                                      plotOutput("crispr_box_ds_dep", height = 225),
+                                      plotOutput("crispr_box_st_dep", height = 225))),
+                 # RNAi plots
+                 br(), br(),
+                 tags$h3("RNAi metrics:"),
+                 tags$h5(paste0("RNAi scores indicate the effect of gene knock-out on viability - ",
+                                "(more negative = more dependent on gene)")),
+                 fluidRow(splitLayout(cellWidths = c("25%", "20%", "28%"),
+                                      plotOutput("rnai_dens_dep", height = 225,
+                                                 brush = "crispr_dens_brush"),
+                                      plotOutput("rnai_box_ds_dep", height = 225),
+                                      plotOutput("rnai_box_st_dep", height = 225)))
+                 
         )#,
-        # tabPanel("Dependency",
-        # 
-        #          tags$h3("Differential gene dependency scores:"),
-        #          tags$h5("Drag a box around points to select genes of interest"),
-        #          fluidRow(align="center", 
-        #                   splitLayout(cellWidths = c("30%", "45%"),
-        #                               tags$h4("CRISPR"),
-        #                               tags$h4("RNAi"))),
-        #          fluidRow(align="center", 
-        #                   splitLayout(cellWidths = c("35%", "45%"),
-        #                               plotOutput("crispr_scatter", height = 425,
-        #                                          brush = "crispr_scatter_brush", 
-        #                                          hover = "crispr_scatter_hover") %>% 
-        #                                 withSpinner(color = "#D0E6EA99"),
-        #                               plotOutput("rnai_scatter", height = 425, 
-        #                                          brush = "rnai_scatter_brush", 
-        #                                          hover = "rnai_scatter_hover") %>% 
-        #                                 withSpinner(color = "#D0E6EA99"))),
-        #          fluidRow(align="center", 
-        #                   splitLayout(cellWidths = c("50%", "50%"),
-        #                               verbatimTextOutput("crispr_scatter_hover_text"),
-        #                               verbatimTextOutput("rnai_scatter_hover_text"))),
-        #          
-        #          # metrics table
-        #          br(),br(),
-        #          tags$h3("Selected genes:"),
-        #          tags$h5("Select a row to plot gene dependency accross cell lines below"),
-        #          div(DT::dataTableOutput("genedep_summary_dt"),
-        #              style = "font-size:90%")
-        # 
-        # )#,
         # tabPanel("Expression",
         #          
         #          # scatter plot of average
@@ -295,7 +330,6 @@ server <- function(input, output, session) {
       print("load_comparison")
       if (is_empty(input$comparison_choice)) return(NULL)
       ctcomp <- readRDS(ctcomparisons[[input$comparison_choice]])
-      # print(head(ctcomp$cpdlvl))
       # ct/sample info
       reactvals$ct1 <- ct1 <- ctcomp$ct1
       reactvals$ct2 <- ct2 <- ctcomp$ct2
@@ -393,7 +427,6 @@ server <- function(input, output, session) {
       content = function(file) {
         drug_summary <- get_sel_cpd()
         if(is_empty(drug_summary)) return(NULL)
-	print(head(drug_summary))
         writexl::write_xlsx(drug_summary, path=file)
       }
     )
@@ -641,6 +674,7 @@ server <- function(input, output, session) {
         })
 
     ######### dependency metrics for selected compound targets ########### 
+    
     # get dependency metrics for selected compound targets
     get_dep_metrics_cpd <- reactive({
       print("get_dep_metrics_cpd")
@@ -661,17 +695,14 @@ server <- function(input, output, session) {
       dbClearResult(queryres)
       dbDisconnect(db)
       # format sample levels
-      matchidx <- match(depdata$sample_id, si$sample_id)
-      si$st <- ifelse(si$ct==ct1, si$ds_subtype, ct2)
-      stlvls <- as.character(unique(si$st))
+      depdata <- merge(depdata, si, by="sample_id")
+      depdata$st <- ifelse(depdata$ct==ct1, depdata$ds_subtype, ct2)
+      stlvls <- as.character(unique(depdata$st))
       stlvls <- c(stlvls[!grepl(ct2, stlvls)], ct2)
-      si$dg <- ifelse(si$ct==ct1, ct1, si$ds_group)
-      dglvls <- unique(si$dg)
+      depdata$dg <- ifelse(depdata$ct==ct1, ct1, depdata$ds_group)
+      dglvls <- unique(depdata$dg)
       dglvls <- c(dglvls[!grepl(ct1, dglvls)], ct1)
       depdata <- depdata %>%
-        mutate(ct = si[matchidx,]$ct,
-               st = si[matchidx,]$st,
-               dg = si[matchidx,]$dg) %>%
         mutate(ct = factor(ct, levels=c(ct1, ct2)),
                st = factor(st, levels=c(stlvls)),
                dg = factor(dg, levels=c(dglvls))) %>%
@@ -680,8 +711,9 @@ server <- function(input, output, session) {
       return(depdata)
     })
     
+    ### CRISPR
     # CRISPR density plot by disease
-    output$crispr_dens <- renderPlot({
+    output$cpd_crispr_dens <- renderPlot({
         print("crispr_dens")
         plotdat <- get_dep_metrics_cpd()
         validate(need(!is_empty(plotdat),
@@ -693,7 +725,7 @@ server <- function(input, output, session) {
         gen_densplot(plotdat, "score", "ct", xlab = "CRISPR effect score")
     })
     # CRISPR boxplot by disease
-    output$crispr_box_ds <- renderPlot({
+    output$cpd_crispr_box_ds <- renderPlot({
       print("crispr_box_ds")
       plotdat <- get_dep_metrics_cpd()
       validate(need(!is_empty(plotdat),
@@ -705,7 +737,7 @@ server <- function(input, output, session) {
       gen_boxplot(plotdat, "dg", "score", ylab = "CRISPR effect score")
     })
     # CRISPR boxplot by subtype
-    output$crispr_box_st <- renderPlot({
+    output$cpd_crispr_box_st <- renderPlot({
       print("crispr_box_ds")
       plotdat <- get_dep_metrics_cpd()
       validate(need(!is_empty(plotdat),
@@ -715,15 +747,52 @@ server <- function(input, output, session) {
       gen_boxplot(plotdat, "st", "score", ylab = "CRISPR effect score")
     })
     
-    # data table of CRISPR data
+    ### RNAi
+    # RNAi density plot by disease
+    output$cpd_rnai_dens <- renderPlot({
+      print("crispr_dens")
+      plotdat <- get_dep_metrics_cpd()
+      validate(need(!is_empty(plotdat),
+                    "      No CRISPR data associated with selected compound"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      validate(need(nrow(plotdat) > 1,
+                    "      No RNAi data associated with selected compound"))
+      gen_densplot(plotdat, "score", "ct", xlab = "RNAi effect score")
+    })
+    # RNAi boxplot by disease
+    output$cpd_rnai_box_ds <- renderPlot({
+      print("rnai_box_ds")
+      plotdat <- get_dep_metrics_cpd()
+      validate(need(!is_empty(plotdat),
+                    "      No RNAi data associated with selected compound"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      validate(need(nrow(plotdat) > 1,
+                    "      No RNAi data associated with selected compound"))
+      gen_boxplot(plotdat, "dg", "score", ylab = "RNAi effect score")
+    })
+    # RNAi boxplot by subtype
+    output$cpd_rnai_box_st <- renderPlot({
+      print("rnai_box_st")
+      plotdat <- get_dep_metrics_cpd()
+      validate(need(!is_empty(plotdat),
+                    "      No RNAi data associated with selected compound"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      gen_boxplot(plotdat, "st", "score", ylab = "RNAi effect score")
+    })
+    
+    # data table of dependency data
     output$cpd_dep_metrics_dt <- DT::renderDataTable({
-        dat <- get_dep_metrics_cpd()
+        dat <- get_dep_metrics_cpd() %>%
+          dplyr::select_at(c(1:5,8,10:17))
         if (is_empty(dat) | is_empty(reactvals$ct1)) return(NULL)
-        if (!is_empty(input$crispr_dens_brush)) {
-            brushinfo <- input$crispr_dens_brush
-            dat <- dat %>% dplyr::filter(score > brushinfo$xmin &
-                                         score < brushinfo$xmax)
-        }
+        # if (!is_empty(input$crispr_dens_brush)) {
+        #     brushinfo <- input$crispr_dens_brush
+        #     dat <- dat %>% dplyr::filter(score > brushinfo$xmin &
+        #                                  score < brushinfo$xmax)
+        # }
         DT::datatable(
             data = dat,
             rownames = F,
@@ -731,231 +800,537 @@ server <- function(input, output, session) {
             options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
     })
     output$dl_cpd_dep_metrics_xls <- downloadHandler(
-        filename = function() {
-            ct <- reactvals$ct1
-            dat <- get_dep_metrics_cpd()
-            paste0("CRISPR_metrics_", 
-                   paste0(reactvals$target_gene_symbols, collapse="_"),
-                   "_", ct,  ".xlsx")
-        },
-        content = function(file) {
-            dat <- get_dep_metrics_cpd()
-            if (is_empty(dat) | is(empty(ct))) return(NULL)
-            writexl::write_xlsx(dat, path=file)
-        }
+      filename = function() {
+        paste0("CRISPR_metrics_", 
+               paste0(reactvals$target_gene_symbols, collapse="_"),
+               "_", reactvals$ct1,  ".xlsx")
+      },
+      content = function(file) {
+        metrics <- get_dep_metrics_cpd()
+        if (is_empty(metrics)) return(NULL)
+        writexl::write_xlsx(metrics, path=file)
+      }
     )
-    # 
-    # # get RNAi data
-    # get_rnai_dat <- reactive({
-    #     print("get_rnai_dat")
-    #     gene <- reactvals$gene
-    #     if(is_empty(gene) | gene=="") return(NULL)
-    #     geneidx <- which(fData(data$rnai_es)$genesymbol == gene)
-    #     if(is_empty(geneidx)) return(NULL)
-    #     cbind(rnai_effect = exprs(data$rnai_es)[geneidx, ],
-    #           pData(data$rnai_es))
-    # })
-    # 
-    # # filter RNAi to just selected cell types
-    # get_filt_rnai_dat <- reactive({
-    #     print("get_filt_rnai_dat")
-    #     metrics <- get_rnai_dat()
-    #     if (is_empty(metrics)) return(NULL)
-    #     ct1 <- metrics %>%
-    #         dplyr::filter(!is.na(CCLE_Name) & CCLE_Name %in% reactvals$ct1_si$CCLE_Name) %>%
-    #         mutate(ct = reactvals$ct1)
-    #     ct2 <- metrics %>%
-    #         dplyr::filter(!is.na(CCLE_Name) & CCLE_Name %in% reactvals$ct2_si$CCLE_Name) %>%
-    #         mutate(ct = reactvals$ct2)
-    #     filt <- rbind(ct1, ct2) %>%
-    #         mutate(ct = factor(ct, levels = c(reactvals$ct1, reactvals$ct2))) %>%
-    #         mutate(st = ifelse(ct == reactvals$ct1,
-    #                            as.character(ds_subtype),
-    #                            as.character(ct)))
-    #     lvls <- unique(filt$st)
-    #     lvls <- c(lvls[!grepl(reactvals$ct2, lvls)], reactvals$ct2)
-    #     filt %>%
-    #         mutate(st = factor(st, levels=lvls))
-    # })
-    # 
-    # # RNAi density plot by disease
-    # output$rnai_dens <- renderPlot({
-    #     print("rnai_dens")
-    #     plotdat <- get_filt_rnai_dat()
-    #     validate(need(!is_empty(plotdat),
-    #                   "      No RNAi data associated with selected compound"))
-    #     gen_densplot(plotdat, "rnai_effect", "ct", xlab = "RNAi effect score")
-    # })
-    # 
-    # # RNAi boxplot by disease
-    # output$rnai_box_ds <- renderPlot({
-    #     print("rnai_box_ds")
-    #     metrics <- get_rnai_dat()
-    #     if(is_empty(metrics)) return(NULL)
-    #     plotdat <- metrics %>%
-    #         dplyr::filter(!is.na(CCLE_Name) & !ds_type %in% c("Unknown")) %>%
-    #         mutate(ds_group = factor(ds_group))
-    #     gen_boxplot(plotdat, "ds_group", "rnai_effect", ylab = "RNAi effect score")
-    # })
-    # 
-    # # RNAi boxplot by subtype
-    # output$rnai_box_st <- renderPlot({
-    #     print("rnai_box_st")
-    #     plotdat <- get_filt_rnai_dat()
-    #     if(is_empty(plotdat)) return(NULL)
-    #     gen_boxplot(plotdat, "st", "rnai_effect", ylab = "RNAi effect score")
-    # })
-    # 
-    # # cell-line level RNAi data
-    # output$cl_rnaidat <- DT::renderDataTable({
-    #     dat <- get_rnai_dat()
-    #     if(is_empty(dat) | is_empty(reactvals$ct1)) return(NULL)
-    #     dat %>%
-    #         dplyr::filter(!is.na(CCLE_Name) & CCLE_Name %in% reactvals$ct1_si$CCLE_Name)
-    #     DT::datatable(
-    #         data = dat,
-    #         rownames = F,
-    #         selection = "none",
-    #         options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
-    # })
-    # output$dl_cl_rnai_xls <- downloadHandler(
-    #     filename = function() {
-    #         ct <- reactvals$ct1
-    #         dat <- get_rnai_dat()
-    #         gene <- unique(dat$genesymbol)
-    #         paste0("RNAi_metrics_", gene, "_", ct,  ".xlsx")
-    #     },
-    #     content = function(file) {
-    #         ct <- reactvals$ct1
-    #         dat <- get_rnai_dat()
-    #         if(is_empty(dat) | is_empty(ct)) return(NULL)
-    #         dat %>%
-    #             dplyr::filter(!is.na(CCLE_Name) & CCLE_Name %in% reactvals$ct1_si$CCLE_Name)
-    #         writexl::write_xlsx(dat, path=file)
-    #     })
+    
+    ############################## Dependency ####################################
+     
+    # scatter plot of differential CRISPR scores
+    output$crispr_scatter <- renderPlot({
+      print("crispr_scatter")
+      tmp <- load_comparison()
+      if(is_empty(reactvals$genelvl)) return(NULL)
+      plotdat <- reactvals$genelvl
+      ct1 <- reactvals$ct1
+      ct2 <- reactvals$ct2
+      plotdat <- plotdat %>%
+        mutate(color = ifelse(nl10pCRISPR < 1.3, "ns",
+                              ifelse(dCRISPR > 0, "dependency", "tolerance"))) %>%
+        # filter(color != "ns") %>%
+        mutate(color = factor(color, levels= c("dependency", "ns", "tolerance")))
+      plotdat %>%
+        ggplot(aes(x=dCRISPR, y=nl10pCRISPR)) +
+        geom_vline(xintercept = 0, lty=2, alpha=0.4) +
+        geom_point(aes(color=color), size = 2) +
+        scale_color_manual(values=c("#71448199","grey80","#528199cc")) +
+        scale_x_continuous(name = paste0("\u0394 CRISPR score ", ct1, "/", ct2)) +
+        scale_y_continuous(name = "Significance (-log10 p-value)") +
+        theme_bw(base_size = 17) +
+        theme(legend.position = "none",
+              panel.grid = element_blank())
+    })
+    # scatter plot of differential RNAi scores
+    output$rnai_scatter <- renderPlot({
+      print("rnai_scatter")
+      tmp <- load_comparison()
+      if(is_empty(reactvals$genelvl)) return(NULL)
+      plotdat <- reactvals$genelvl
+      ct1 <- reactvals$ct1
+      ct2 <- reactvals$ct2
+      plotdat <- plotdat %>%
+        mutate(color = ifelse(nl10pRNAi < 1.3, "ns",
+                              ifelse(dRNAi > 0, "dependency", "tolerance"))) %>%
+        # filter(color != "ns") %>%
+        mutate(color = factor(color, levels= c("dependency", "ns", "tolerance")))
+      plotdat %>%
+        ggplot(aes(x=dRNAi, y=nl10pRNAi)) +
+        geom_vline(xintercept = 0, lty=2, alpha=0.4) +
+        geom_point(aes(color=color), size = 2) +
+        scale_color_manual(values=c("#71448199","grey80","#528199cc"), name=paste0(ct1, "-specific")) +
+        scale_x_continuous(name = paste0("\u0394 RNAi score ", ct1, "/", ct2)) +
+        scale_y_continuous(name = "Significance (-log10 p-value)") +
+        theme_bw(base_size = 17) +
+        theme(legend.background = element_blank(),
+              panel.grid = element_blank())
+    })
 
-    # ############################## Dependency ####################################
+    # handle brushing
+    brushed_crispr <- reactive({
+      print("brushed_crispr")
+      if (is_empty(input$crispr_scatter_brush)) return(NULL)
+      reactvals$rnai_scatter_brush <- F
+      reactvals$crispr_scatter_brush <- T
+    })
+    brushed_rnai <- reactive({
+      print("brushed_rnai")
+      if (is_empty(input$rnai_scatter_brush)) return(NULL)
+      reactvals$rnai_scatter_brush <- T
+      reactvals$crispr_scatter_brush <- F
+    })
+
+    # get all selected compounds
+    get_sel_genedep <- reactive({
+      print("get_sel_genedep")
+      genelvl <- reactvals$genelvl
+      if(is_empty(genelvl)) return(NULL)
+      genesub <- genelvl
+      crispr_scatter_brush <- brushed_crispr()
+      rnai_scatter_brush <- brushed_rnai()
+      if (!is_empty(reactvals$crispr_scatter_brush)) {
+        if (reactvals$rnai_scatter_brush == T) {
+          genesub <- genesub %>%
+            brushedPoints(input$rnai_scatter_brush)
+        } else if (reactvals$crispr_scatter_brush == T) {
+          genesub <- genesub %>%
+            brushedPoints(input$crispr_scatter_brush)
+        }
+      } # else {
+      #   genesub <- genesub %>%
+      #     filter((gene_rank > .9 | gene_rank < .9) |
+      #             (dCRISPR_rank > .9 | dCRISPR_rank < .9) |
+      #              (dRNAi_rank > .9 | dRNAi_rank < .9))
+      # }
+      genesub %>%
+        select_at(c(1:2, 4,6,7,5,8, 13:14, 16:17, 19:20, 21:22)) %>%
+        mutate_at(c(3:5,7:9,12:15), round, digits=3)
+    })
+
+    # output text for hovered point - crispr
+    output$crispr_hover_text <- renderText({
+        if (is_empty(input$crispr_scatter_hover)) return(NULL)
+        subdat <- get_sel_genedep() %>%
+            nearPoints(input$crispr_scatter_hover)
+        paste0("Genes near cursor: ", paste0(unique(subdat$gene_symbol), collapse=";"))
+    })
+    output$rnai_hover_text <- renderText({
+      if (is_empty(input$rnai_scatter_hover)) return(NULL)
+      subdat <- get_sel_genedep() %>%
+        nearPoints(input$rnai_scatter_hover)
+      paste0("Genes near cursor: ", paste0(unique(subdat$gene_symbol), collapse=";"))
+    })
+
+    # dependency info table
+    output$genedep_summary_dt <- DT::renderDataTable({
+        print("genedep_summary_dt")
+        sel_genedep <- get_sel_genedep()
+        if (is.null(sel_genedep)) return(NULL)
+        DT::datatable(
+            data = sel_genedep,
+            rownames = F,
+            selection = list(mode = 'single', target = "row", selected = 1),
+            options = list(columnDefs = list(list(
+              targets = 0:1,
+              render = JS(
+                "function(data, type, row, meta) {",
+                "return type === 'display' && data.length > 30 ?",
+                "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
+                "}")
+            ))), callback = JS('table.page(3).draw(false);')
+        )
+    })
+    output$dl_genedep_summary_xls <- downloadHandler(
+      filename = function() {
+        paste0("Gene_dependency_summary_table_", reactvals$ct1, "_vs_", 
+               reactvals$ct2, ".xlsx")
+      },
+      content = function(file) {
+        gene_summary <- get_sel_genedep()
+        if(is_empty(gene_summary)) return(NULL)
+        writexl::write_xlsx(gene_summary, path=file)
+      }
+    )
+    
+    ######### score summary for selected compound  ########### 
+    
+    # text just highlighting the selected gene
+    output$sel_gene_text <- renderUI({
+      print("sel_gene_text")
+      plotdat <- get_sel_genedep()
+      if(is_empty(plotdat)) return(NULL)
+      if(is_empty(input$genedep_summary_dt_rows_selected)) return(NULL)
+      plotdat <- plotdat %>%
+        dplyr::slice(input$genedep_summary_dt_rows_selected)
+      HTML(paste0("<h4>Selected gene: <b>", plotdat$gene_symbol,
+                  "</b>, Compounds targetting: <b>", plotdat$compounds, "</b></h4>"))
+    })
+    # metrics overview
+    output$metrics_overview_dep <- renderPlot({
+      print("metrics_overview")
+      plotdat <- get_sel_genedep()
+      if(is_empty(plotdat)) return(NULL)
+      if(is_empty(input$genedep_summary_dt_rows_selected)) return(NULL)
+      plotdat <- plotdat %>%
+        dplyr::slice(input$genedep_summary_dt_rows_selected) %>%
+        dplyr::select(gene_symbol, gene_score, CRISPR_score, RNAi_score, DSS4_score) %>%
+        gather("metric", "percentile", -c(1)) %>%
+        mutate(percentile = percentile*100,
+               metric = factor(metric,
+                               levels = c("DSS4_score","RNAi_score","CRISPR_score",
+                                          "gene_score"),
+                               labels = c("DSS4 score","RNAi score","CRISPR score",
+                                          "Overall gene score")))
+      ggplot(plotdat, aes(x=metric, y=percentile)) +
+        geom_point(size=4, color="#714481ff", shape=21) +
+        coord_flip(clip="off") +
+        scale_y_continuous(limits=c(0,100), expand=c(0,0), name="Percentile") +
+        xlab("Metric") +
+        theme_bw(base_size = 14) +
+        theme(panel.border = element_blank(),
+              panel.grid.major.x = element_blank(),
+              panel.grid.minor.x = element_blank(),
+              panel.grid.minor.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              axis.line.x = element_line(),
+              panel.grid.major.y = element_line(size = 2),
+              plot.margin = margin(0.5,0.5,0.5,0.5, "cm"))
+    })
+    
+    # get selected gene
+    get_sel_gene_info <- reactive({
+      print("get_sel_gene_info")
+      depsummary <- get_sel_genedep()
+      if(is.null(input$genedep_summary_dt_rows_selected) |
+         is.null(depsummary)) { print("line 992"); return(NULL) }
+      depsummary <- depsummary %>%
+        dplyr::slice(input$genedep_summary_dt_rows_selected)
+      if (is_empty(depsummary)) { print("line 996"); return(NULL) }
+      print(head(depsummary))
+      entrez_id <- unique(depsummary$entrez_id)
+      gene_symbol <- unique(depsummary$gene_symbol)
+      compounds <- unique(unlist(strsplit(depsummary$compounds, ";")))
+      reactvals$dep_compounds <- compounds
+      reactvals$dep_gene_symbol <- gene_symbol
+      reactvals$dep_gene_id <- entrez_id
+      return(entrez_id)
+    })
+
+    ######### dependency metrics for selected gene #############
+
+    # get dependency metrics for selected compound targets
+    get_dep_metrics_gene <- reactive({
+      print("get_dep_metrics_gene")
+      si <- reactvals$si
+      ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+      entrezid <- get_sel_gene_info()
+      if (is_empty(entrezid)) { print("line 1014"); return(NULL) }
+      # query db for selected compounds
+      db <- dbConnect(RMariaDB::MariaDB(), default.file = cnf, group = dbname)
+      query <- paste0('SELECT * FROM dep_data ',
+                      'WHERE entrez_id IN ("',
+                      paste0(entrezid, collapse = '", "'),
+                      '") AND sample_id IN ("',
+                      paste0(si$sample_id, collapse = '", "'),
+                      '");')
+      queryres <- dbSendQuery(db, query)
+      depdata <- dbFetch(queryres)
+      dbClearResult(queryres)
+      dbDisconnect(db)
+      # format sample levels
+      depdata <- merge(depdata, si, by="sample_id")
+      depdata$st <- ifelse(depdata$ct==ct1, depdata$ds_subtype, ct2)
+      stlvls <- as.character(unique(depdata$st))
+      stlvls <- c(stlvls[!grepl(ct2, stlvls)], ct2)
+      depdata$dg <- ifelse(depdata$ct==ct1, ct1, depdata$ds_group)
+      dglvls <- unique(depdata$dg)
+      dglvls <- c(dglvls[!grepl(ct1, dglvls)], ct1)
+      depdata <- depdata %>%
+        mutate(ct = factor(ct, levels=c(ct1, ct2)),
+               st = factor(st, levels=c(stlvls)),
+               dg = factor(dg, levels=c(dglvls))) %>%
+        dplyr::filter(!is.na(ct) & !is.na(dg) & !dg=="Other")
+      if (is_empty(depdata) | nrow(depdata) < 1) return(NULL)
+      return(depdata)
+    })
+
+    ### CRISPR
+    # CRISPR density plot by disease
+    output$crispr_dens_dep <- renderPlot({
+      print("crispr_dens_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No CRISPR data associated with selected compound"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "CRISPR")
+      validate(need(nrow(plotdat) > 1,
+                    "      No CRISPR data associated with selected compound"))
+      gen_densplot(plotdat, "score", "ct", xlab = "CRISPR effect score")
+    })
+    # CRISPR boxplot by disease
+    output$crispr_box_ds_dep <- renderPlot({
+      print("crispr_box_ds_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No CRISPR data associated with selected compound"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "CRISPR")
+      validate(need(nrow(plotdat) > 1,
+                    "      No CRISPR data associated with selected compound"))
+      gen_boxplot(plotdat, "dg", "score", ylab = "CRISPR effect score")
+    })
+    # CRISPR boxplot by subtype
+    output$crispr_box_st_dep <- renderPlot({
+      print("crispr_box_st_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No CRISPR data associated with selected gene"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "CRISPR")
+      gen_boxplot(plotdat, "st", "score", ylab = "CRISPR effect score")
+    })
+
+    ### RNAi
+    # RNAi density plot by disease
+    output$rnai_dens_dep <- renderPlot({
+      print("rnai_dens_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No CRISPR data associated with selected gene"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      validate(need(nrow(plotdat) > 1,
+                    "      No RNAi data associated with selected gene"))
+      gen_densplot(plotdat, "score", "ct", xlab = "RNAi effect score")
+    })
+    # RNAi boxplot by disease
+    output$rnai_box_ds_dep <- renderPlot({
+      print("rnai_box_ds_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No RNAi data associated with selected gene"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      validate(need(nrow(plotdat) > 1,
+                    "      No RNAi data associated with selected gene"))
+      gen_boxplot(plotdat, "dg", "score", ylab = "RNAi effect score")
+    })
+    # RNAi boxplot by subtype
+    output$rnai_box_st_dep <- renderPlot({
+      print("rnai_box_st_dep")
+      plotdat <- get_dep_metrics_gene()
+      validate(need(!is_empty(plotdat),
+                    "      No RNAi data associated with selected gene"))
+      plotdat <- plotdat %>%
+        dplyr::filter(assay_type == "RNAi")
+      gen_boxplot(plotdat, "st", "score", ylab = "RNAi effect score")
+    })
     # 
-    # # scatter plot of differential CRISPR scores 
-    # output$crispr_scatter <- renderPlot({
-    #   print("crispr_scatter")
-    #   tmp <- load_comparison()
-    #   if(is_empty(reactvals$genelvl)) return(NULL)
-    #   plotdat <- reactvals$genelvl
-    #   ct1 <- reactvals$ct1
-    #   ct2 <- reactvals$ct2
-    #   plotdat <- plotdat %>%
-    #     mutate(color = ifelse(nl10pCRISPR < 0.3, "ns",
-    #                           ifelse(dCRISPR > 0, "dependency", "tolerance"))) %>%
-    #     filter(color != "ns") %>%
-    #     mutate(color = factor(color, levels= c("dependency", "tolerance")))
-    #   plotdat %>%
-    #     ggplot(aes(x=dCRISPR, y=nl10pCRISPR)) +
-    #     geom_vline(xintercept = 0, lty=2, alpha=0.4) +
-    #     geom_point(aes(color=color), size = 2) +
-    #     scale_color_manual(values=c("#71448199","#528199cc")) +
-    #     scale_x_continuous(name = paste0("\u0394 CRISPR score ", ct1, "/", ct2)) +
-    #     scale_y_continuous(name = "Significance (-log10 p-value)") +
-    #     theme_bw(base_size = 17) +
-    #     theme(legend.position = "none",
-    #           panel.grid = element_blank()) 
+    # # data table of dependency data
+    # output$cpd_dep_metrics_dt <- DT::renderDataTable({
+    #   dat <- get_dep_metrics_cpd() %>%
+    #     dplyr::select_at(c(1:5,8,10:17))
+    #   if (is_empty(dat) | is_empty(reactvals$ct1)) return(NULL)
+    #   # if (!is_empty(input$crispr_dens_brush)) {
+    #   #     brushinfo <- input$crispr_dens_brush
+    #   #     dat <- dat %>% dplyr::filter(score > brushinfo$xmin &
+    #   #                                  score < brushinfo$xmax)
+    #   # }
+    #   DT::datatable(
+    #     data = dat,
+    #     rownames = F,
+    #     selection = "none",
+    #     options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
     # })
-    # # scatter plot of differential RNAi scores 
-    # output$rnai_scatter <- renderPlot({
-    #   print("rnai_scatter")
-    #   tmp <- load_comparison()
-    #   if(is_empty(reactvals$genelvl)) return(NULL)
-    #   plotdat <- reactvals$genelvl
-    #   ct1 <- reactvals$ct1
-    #   ct2 <- reactvals$ct2
-    #   plotdat <- plotdat %>%
-    #     mutate(color = ifelse(nl10pRNAi < 0.3, "ns",
-    #                           ifelse(dRNAi > 0, "dependency", "tolerance"))) %>%
-    #     filter(color != "ns") %>%
-    #     mutate(color = factor(color, levels= c("dependency", "tolerance")))
-    #   plotdat %>%
-    #     ggplot(aes(x=dRNAi, y=nl10pRNAi)) +
-    #     geom_vline(xintercept = 0, lty=2, alpha=0.4) +
-    #     geom_point(aes(color=color), size = 2) +
-    #     scale_color_manual(values=c("#71448199","#528199cc"), name=paste0(ct1, "-specific")) +
-    #     scale_x_continuous(name = paste0("\u0394 RNAi score ", ct1, "/", ct2)) +
-    #     scale_y_continuous(name = "Significance (-log10 p-value)") +
-    #     theme_bw(base_size = 17) +
-    #     theme(legend.background = element_blank(),
-    #           panel.grid = element_blank()) 
-    # })
-    # 
-    # # handle brushing
-    # brushed_crispr <- reactive({
-    #   print("brushed_crispr")
-    #   if (is_empty(input$crispr_scatter_brush)) return(NULL)
-    #   reactvals$rnai_scatter_brush <- F
-    #   reactvals$crispr_scatter_brush <- T
-    # })
-    # brushed_rnai <- reactive({
-    #   print("brushed_rnai")
-    #   if (is_empty(input$rnai_scatter_brush)) return(NULL)
-    #   reactvals$rnai_scatter_brush <- T
-    #   reactvals$crispr_scatter_brush <- F
-    # })
-    # 
-    # # get all selected compounds 
-    # get_sel_genedep <- reactive({
-    #   print("get_sel_genedep")
-    #   genelvl <- reactvals$genelvl
-    #   if(is_empty(genelvl)) return(NULL)
-    #   genesub <- genelvl
-    #   crispr_scatter_brush <- brushed_crispr()
-    #   rnai_scatter_brush <- brushed_rnai()
-    #   if (!is_empty(reactvals$crispr_scatter_brush)) {
-    #     if (reactvals$rnai_scatter_brush == T) {
-    #       genesub <- genesub %>%
-    #         brushedPoints(input$rnai_scatter_brush)
-    #     } else if (reactvals$crispr_scatter_brush == T) {
-    #       genesub <- genesub %>%
-    #         brushedPoints(input$crispr_scatter_brush)
-    #     }
-    #   } else {
-    #     genesub <- genesub %>%
-    #       filter((gene_rank > .9 | gene_rank < .9) |
-    #               (dCRISPR_rank > .9 | dCRISPR_rank < .9) |
-    #                (dRNAi_rank > .9 | dRNAi_rank < .9))
+    # output$dl_cpd_dep_metrics_xls <- downloadHandler(
+    #   filename = function() {
+    #     paste0("CRISPR_metrics_", 
+    #            paste0(reactvals$target_gene_symbols, collapse="_"),
+    #            "_", reactvals$ct1,  ".xlsx")
+    #   },
+    #   content = function(file) {
+    #     metrics <- get_dep_metrics_cpd()
+    #     if (is_empty(metrics)) return(NULL)
+    #     print(head(metrics))
+    #     writexl::write_xlsx(metrics, path=file)
     #   }
-    #   genesub %>%
-    #     select(-c(dCRISPR, dRNAi,
-    #               pCRISPR, pRNAi,
-    #               nl10pCRISPR, nl10pRNAi)) %>%
-    #     mutate_at(3:11, round, digits=2) %>%
-    #     mutate_at(6:7, function(x) ifelse(is.nan(x), NA, x))
-    # }) 
+    # )
     # 
-    # # output text for hovered point - crispr
-    # output$crispr_hover_text <- renderText({
-    #     if (is_empty(input$crispr_scatter_hover)) return(NULL)
-    #     subdat <- get_crispr_summary() %>%
-    #         nearPoints(input$crispr_scatter_hover)
-    #     paste0("Genes near cursor: ", paste0(unique(subdat$gene), collapse=";"))
+    
+    
+    # ######### sensitivity metrics for selected compound  ########### 
+    # 
+    # # get drug metrics for selected row
+    # get_sel_cpd_metrics <- reactive({
+    #   print("get_sel_cpd_metrics")
+    #   si <- reactvals$si
+    #   ct1 <- reactvals$ct1; ct2 <- reactvals$ct2
+    #   cpdnames <- get_sel_cpd_info() # selected compound names
+    #   if (is_empty(cpdnames)) return(NULL)
+    #   # query db for selected compounds
+    #   db <- dbConnect(RMariaDB::MariaDB(), default.file = cnf, group = dbname)
+    #   query <- paste0('SELECT * FROM drug_metrics ',
+    #                   'WHERE cpd_name IN ("',
+    #                   paste0(cpdnames, collapse = '", "'),
+    #                   '") AND sample_id IN ("',
+    #                   paste0(si$sample_id, collapse = '", "'),
+    #                   '");')
+    #   queryres <- dbSendQuery(db, query)
+    #   metrics <- dbFetch(queryres)
+    #   dbClearResult(queryres)
+    #   dbDisconnect(db)
+    #   # limit the EC50
+    #   metrics <- metrics %>%
+    #     mutate(EC50 = ifelse(logEC50 > logmaxc, logmaxc*2, logEC50)) 
+    #   # format sample levels
+    #   matchidx <- match(metrics$sample_id, si$sample_id)
+    #   si$st <- ifelse(si$ct==ct1, si$ds_subtype, ct2)
+    #   stlvls <- as.character(unique(si$st))
+    #   stlvls <- c(stlvls[!grepl(ct2, stlvls)], ct2)
+    #   si$dg <- ifelse(si$ct==ct1, ct1, si$ds_group)
+    #   dglvls <- unique(si$dg)
+    #   dglvls <- c(dglvls[!grepl(ct1, dglvls)], ct1)
+    #   metrics <- metrics %>%
+    #     mutate(ct = si[matchidx,]$ct,
+    #            st = si[matchidx,]$st,
+    #            dg = si[matchidx,]$dg) %>%
+    #     mutate(ct = factor(ct, levels=c(ct1, ct2)),
+    #            st = factor(st, levels=c(stlvls)),
+    #            dg = factor(dg, levels=c(dglvls))) %>%
+    #     dplyr::filter(!is.na(ct) & !is.na(dg) & !dg=="Other")
+    #   if (is_empty(metrics) | nrow(metrics) < 1) return(NULL)
+    #   return(metrics)
     # })
     # 
-    # # dependency info table
-    # output$genedep_summary_dt <- DT::renderDataTable({
-    #     print("genedep_summary_dt")
-    #     sel_genedep <- get_sel_genedep()
-    #     if (is.null(sel_genedep)) return(NULL)
-    #     DT::datatable(
-    #         data = sel_genedep,
-    #         rownames = F,
-    #         selection = list(mode = 'single', target = "row", selected = 1),
-    #         options = list(columnDefs = list(list(
-    #           targets = 0:1,
-    #           render = JS(
-    #             "function(data, type, row, meta) {",
-    #             "return type === 'display' && data.length > 30 ?",
-    #             "'<span title=\"' + data + '\">' + data.substr(0, 30) + '...</span>' : data;",
-    #             "}")
-    #         ))), callback = JS('table.page(3).draw(false);')
-    #     )
+    # # drug sensitivity density plot
+    # output$ctd_dss_dens_ui <- renderUI({
+    #   print("ctd_dss_dens_ui")
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset == "CTD")
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_densplot(plotdat, reactvals$selcpd_metric,
+    #                     "ct", xlab = paste0(reactvals$selcpd_metric, " score")) +
+    #     ggtitle("CTD")
+    #   output$ctd_dss_dens_plot <- renderPlot(p)
+    #   plotOutput("ctd_dss_dens_plot", height = 225)
     # })
+    # output$gdsc_dss_dens_ui <- renderUI({
+    #   print("gdsc_dss_dens_ui")
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset %in% c("GDSC1","GDSC2"))
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_densplot(plotdat, reactvals$selcpd_metric,
+    #                     "ct", xlab = paste0(reactvals$selcpd_metric, " score")) +
+    #     ggtitle("GDSC")
+    #   output$gdsc_dss_dens_plot <- renderPlot(p)
+    #   plotOutput("gdsc_dss_dens_plot", height = 225)
+    # })
+    # 
+    # # drug sensitivity boxplots - disease groups
+    # output$ctd_dss_group_ui <- renderUI({
+    #   print("ctd_dss_group_ui")  
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset == "CTD")
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "dg", reactvals$selcpd_metric,
+    #                    ylab = paste0(reactvals$selcpd_metric, " score"))
+    #   output$ctd_dss_group_plot <- renderPlot(p)
+    #   plotOutput("ctd_dss_group_plot", height = 225)
+    # })
+    # output$gdsc_dss_group_ui <- renderUI({
+    #   print("gdsc_dss_group_ui")    
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset %in% c("GDSC1","GDSC2"))
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "dg", reactvals$selcpd_metric,
+    #                    ylab = paste0(reactvals$selcpd_metric, " score"))
+    #   output$gdsc_dss_group_plot <- renderPlot(p)
+    #   plotOutput("gdsc_dss_group_plot", height = 225)
+    # })
+    # 
+    # # drug sensitivity boxplots - subtypes
+    # output$ctd_dss_st_ui <- renderUI({
+    #   print("ctd_dss_st_ui")    
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset == "CTD")
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "st", reactvals$selcpd_metric,
+    #                    ylab = paste0(reactvals$selcpd_metric, " score")) +
+    #     ggtitle(paste0(reactvals$ct1, " subtypes:"))
+    #   output$ctd_dss_st_plot <- renderPlot(p)
+    #   plotOutput("ctd_dss_st_plot", height = 225)
+    # })
+    # output$gdsc_dss_st_ui <- renderUI({
+    #   print("gdsc_dss_st_ui") 
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset %in% c("GDSC1","GDSC2"))
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "st", reactvals$selcpd_metric,
+    #                    ylab = paste0(reactvals$selcpd_metric, " score")) +
+    #     ggtitle(paste0(reactvals$ct1, " subtypes:"))
+    #   output$gdsc_dss_st_plot <- renderPlot(p)
+    #   plotOutput("gdsc_dss_st_plot", height = 225)
+    # })
+    # 
+    # # EC50 boxplots - subtypes
+    # output$ctd_ec50_st_ui <- renderUI({
+    #   print("ctd_ec50_st_ui")
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset == "CTD")
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "st", "EC50", ylab = "EC50 (\U03BCM)") +
+    #     ggtitle("")
+    #   output$ctd_ec50_st_plot <- renderPlot(p)
+    #   plotOutput("ctd_ec50_st_plot", height = 225)
+    # })
+    # output$gdsc_ec50_st_ui <- renderUI({
+    #   print("gdsc_ec50_st_ui")
+    #   plotdat <- get_sel_cpd_metrics()
+    #   if (is_empty(plotdat)) return(NULL)
+    #   plotdat <- plotdat %>%
+    #     filter(dataset %in% c("GDSC1","GDSC2"))
+    #   if (nrow(plotdat) < 1) return(NULL)
+    #   p <- gen_boxplot(plotdat, "st", "EC50", ylab = "EC50 (\U03BCM)")
+    #   output$gdsc_ec50_st_plot <- renderPlot(p)
+    #   plotOutput("gdsc_ec50_st_plot", height = 225)
+    # })
+    # 
+    # # data table for selected cpd
+    # output$cpd_metrics_dt <- DT::renderDataTable({
+    #   metrics <- get_sel_cpd_metrics()
+    #   if(is_empty(metrics) | is_empty(reactvals$ct1)) return(NULL)
+    #   metrics <- metrics %>%
+    #     dplyr::select(sample_id, treatment_id, cpd_name, ## add cell line annotation here also
+    #                   logEC50, DSS1, DSS2, DSS3, DSS4) %>%
+    #     DT::datatable(data = metrics,
+    #                   rownames = F,
+    #                   options = list(lengthMenu = c(5, 10, 25),
+    #                                  pageLength = 5))
+    # })
+    # # DT download buttons
+    # output$dl_cpd_metrics_xls <- downloadHandler(
+    #   filename = function() {
+    #     paste0("Compound_metrics_", reactvals$cpd_name,
+    #            "_", reactvals$ct1,  ".xlsx")
+    #   },
+    #   content = function(file) {
+    #     metrics <- get_sel_cpd_metrics()
+    #     if (is_empty(metrics) | is_empty(reactvals$ct1)) return(NULL)
+    #     writexl::write_xlsx(metrics, path=file)
+    #   })
+    # 
+    
 
     # ############################## Expression ####################################
     # 
