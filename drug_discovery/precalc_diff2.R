@@ -7,25 +7,13 @@ library(RMariaDB)
 # library(org.Hs.eg.db)
 # orgdb <- org.Hs.eg.db
 # keys <- AnnotationDbi::keys(orgdb, keytype='ENTREZID')
-# gene_info <- AnnotationDbi::select(orgdb, keys = keys, 
+# gene_info <- AnnotationDbi::select(orgdb, keys = keys,
 #                                    columns = c("SYMBOL", "GENENAME")) %>%
 #   dplyr::rename(entrez_id = ENTREZID,
 #          gene_symbol = SYMBOL,
 #          gene_name = GENENAME)
 # saveRDS(gene_info, "data/geneinfo.2023-10-31.rds")
 gene_info <- readRDS("data/geneinfo.2023-10-31.rds")
-
-filt_wilcox <- function(x, metric, grouping_var = "ct", id_var = "entrez_id") {
-  grpn <- table(x[[grouping_var]])
-  if(any(grpn < 2)) return(NULL)
-  statres <- rstatix::wilcox_test(x, reformulate(grouping_var, metric), 
-                                  ref.group = levels(x[[grouping_var]])[[2]])
-  effres <- rstatix::wilcox_effsize(x, reformulate(grouping_var, metric), 
-                                    ref.group = levels(x[[grouping_var]])[[2]])
-  statres <- merge(statres, effres, by = c(".y.","group1","group2","n1","n2")) %>%
-    mutate(id = unique(x[[id_var]]), .before=1)
-  return(statres)
-}
 
 ### database config ###
 dbname <- "DDDB"
@@ -67,7 +55,7 @@ silist <- list("Solid tumor" = si[which(!si$ds_type %in% c("B-cell",
                "Glioma" = si[which(si$ds_subtype %in% c("Glioblastoma",
                                                         "Glioma",
                                                         "Astrocytoma")),],
-               "AML" = si[which(si$ds_subtype %in% c("Acute myeloid leukemia (AML)")),])
+               "CML" = si[grep("CML", si$ds_subtype),])
 cts <- unique(si$ds_type); names(cts) <- cts
 tmp <- lapply(cts, function(ct) si[which(si$ds_type == ct),])
 silist <- c(silist, tmp)
@@ -76,16 +64,17 @@ silist <- silist[!names(silist) %in% c("Testicular", "Embryonal", "Eye",
                                        "Gallbladder", "Skin carcinoma")]
 
 ### set comaprisons ###
-comp <- data.frame(a = c("B-cell leukemia", "B-cell lymphoma", "B-cell", "T-cell", "T-cell leukemia", names(silist)[-1]),
-                   b = c("AML", "AML", "Myeloid", "B-cell", "B-cell leukemia", rep("Solid tumor", length(silist)-1)))
+comp <- data.frame(a = c("CML","B-cell","T-cell", "T-cell leukemia", names(silist)[-1]),
+                   b = c("Solid tumor","Myeloid","B-cell", "B-cell leukemia", rep("Solid tumor", length(silist)-1)))
 
 #################### calc stats for each disease group ###########################
+dir.create("data/ctres3/")
 lapply(1:nrow(comp), function(compidx) {
   
   ct1 <- comp[compidx, ]$a
   ct2 <- comp[compidx, ]$b
   print(paste0(ct1, " vs ", ct2))
-  if (file.exists(paste0("data/ctres/", ct1, "_vs_", ct2, "_diffsens.rds"))) return(NULL)
+  if (file.exists(paste0("data/ctres3/", ct1, "_vs_", ct2, "_diffsens.rds"))) return(NULL)
   
   ######### sample info #########
   ct1_si <- silist[[ct1]] %>%
@@ -209,90 +198,94 @@ lapply(1:nrow(comp), function(compidx) {
     filter(dataset == "CTD") %>%
     mutate(ct = sisub[match(sample_id, sisub$sample_id),]$ct) %>%
     mutate(ct = factor(ct, levels=c(ct1, ct2))) %>%
-    filter(!is.na(DSS4)) %>%
+    dplyr::rename(AAC = aac) %>%
     mutate(limEC50 = ifelse(logEC50 > logmaxc, log10(2*10^logmaxc), logEC50))
-  av <- ctd_metrics %>%
-    group_by(ct, treatment_id) %>%
-    summarise(n = n(),
-              avEC50 = mean(limEC50, na.rm=T),
-              avDSS4 = mean(DSS4, na.rm=T)) %>%
-    pivot_wider(names_from = ct,
-                values_from = c(avEC50, avDSS4, n))
-  nfilt <- filter_at(av, vars(starts_with("n")), all_vars(. > 3))
-  if (nrow(nfilt) < 1) {
-    ctd_summary <- av %>%
-      mutate(dDSS4 = NA,
-             rDSS4 = NA,
-             pDSS4 = NA,
-             DSS4_prcntl = NA)
-  } else {
-    stats <- ctd_metrics %>%
-      filter(treatment_id %in% nfilt$treatment_id) %>%
-      mutate(zDSS4 = scale(DSS4)[,1]) %>%
-      group_by(treatment_id) %>% 
-      filter(!all(DSS4==0)) %>%
-      rstatix::wilcox_test(zDSS4 ~ ct, ref.group = ct1, detailed = T)
-    eff <- ctd_metrics %>%
-      filter(treatment_id %in% nfilt$treatment_id) %>%
-      mutate(zDSS4 = scale(DSS4)[,1]) %>%
-      group_by(treatment_id) %>% 
-      filter(!all(DSS4==0)) %>%
-      rstatix::wilcox_effsize(zDSS4 ~ ct, ref.group = ct1)
-    stats <- merge(stats, eff[,4:5], by = c("treatment_id")) %>%
-      dplyr::select(treatment_id, estimate, effsize, p) %>%
-      mutate(effsize = ifelse(estimate < 0, -effsize, effsize)) %>%
-      dplyr::rename(dDSS4 = estimate,
-             rDSS4 = effsize,
-             pDSS4 = p) %>%
-      mutate(DSS4_prcntl = rank(-rDSS4)/length(rDSS4)) 
-    ctd_summary <- merge(av, stats, by = "treatment_id", all = T) %>%
-      arrange(-DSS4_prcntl) 
-  }
+  ctd_summary <- lapply(c("limEC50", "AAC", "DSS1", "DSS2", "DSS3", "DSS4"), function(metric) {
+    submetrics <- ctd_metrics %>%
+      mutate(selmetric = .[, grep(metric, colnames(.))]) %>%
+      dplyr::filter(!is.na(selmetric))
+    av <- submetrics %>%
+      group_by(ct, treatment_id) %>%
+      summarise(n = n(),
+                av = mean(selmetric, na.rm=T)) %>%
+      pivot_wider(names_from = ct,
+                  values_from = c(n, av))
+    nfilt <- filter_at(av, vars(starts_with("n")), all_vars(. > 3))
+    if (nrow(nfilt) < 1) {
+      metric_summary <- av %>%
+        mutate(d = NA,
+               r = NA,
+               p = NA,
+               prcntl = NA)
+    } else {
+      tmp <- submetrics %>%
+        filter(treatment_id %in% nfilt$treatment_id) %>%
+        mutate(z = scale(selmetric)[,1]) %>%
+        group_by(treatment_id) %>% 
+        filter(!all(selmetric==0))
+      stats <- tmp %>%
+        rstatix::wilcox_test(z ~ ct, ref.group = ct1, detailed = T)
+      eff <- tmp %>%
+        rstatix::wilcox_effsize(z ~ ct, ref.group = ct1)
+      stats <- merge(stats, eff[,4:5], by = c("treatment_id")) %>%
+        dplyr::select(treatment_id, estimate, effsize, p) %>%
+        mutate(effsize = ifelse(estimate < 0, -effsize, effsize)) %>%
+        dplyr::rename(d = estimate,
+                      r = effsize,
+                      p = p) %>%
+        mutate(prcntl = rank(-r)/length(r)) 
+      metric_summary <- merge(av, stats, by = "treatment_id", all = T) %>%
+        mutate(metric = metric)
+    }
+    return(metric_summary)
+  }) %>% bind_rows()
   
   ######## GDSC ########
   gdsc_metrics <- drug_metrics %>%
     filter(dataset %in% c("GDSC1", "GDSC2")) %>%
     mutate(ct = sisub[match(sample_id, sisub$sample_id),]$ct) %>%
     mutate(ct = factor(ct, levels=c(ct1, ct2))) %>%
-    filter(!is.na(DSS4)) %>%
+    dplyr::rename(AAC = aac) %>%
     mutate(limEC50 = ifelse(logEC50 > logmaxc, log10(2*10^logmaxc), logEC50))
-  av <- gdsc_metrics %>%
-    group_by(ct, treatment_id) %>%
-    summarise(n = n(),
-              avEC50 = mean(limEC50, na.rm=T),
-              avDSS4 = mean(DSS4, na.rm=T)) %>%
-    pivot_wider(names_from = ct,
-                values_from = c(avEC50, avDSS4, n))
-  nfilt <- filter_at(av, vars(starts_with("n")), all_vars(. > 3))
-  if (nrow(nfilt) < 1) {
-    gdsc_summary <- av %>%
-      mutate(dDSS4 = NA,
-             rDSS4 = NA,
-             pDSS4 = NA,
-             DSS4_prcntl = NA)
-  } else {
-    stats <- gdsc_metrics %>%
-      filter(treatment_id %in% nfilt$treatment_id) %>%
-      mutate(zDSS4 = scale(DSS4)[,1]) %>%
-      group_by(treatment_id) %>% 
-      filter(!all(DSS4==0)) %>%
-      rstatix::wilcox_test(zDSS4 ~ ct, ref.group = ct1, detailed = T)
-    eff <- gdsc_metrics %>%
-      filter(treatment_id %in% nfilt$treatment_id) %>%
-      mutate(zDSS4 = scale(DSS4)[,1]) %>%
-      group_by(treatment_id) %>% 
-      filter(!all(DSS4==0)) %>%
-      rstatix::wilcox_effsize(zDSS4 ~ ct, ref.group = ct1)
-    stats <- merge(stats, eff[,4:5], by = c("treatment_id")) %>%
-      dplyr::select(treatment_id, estimate, effsize, p) %>%
-      mutate(effsize = ifelse(estimate < 0, -effsize, effsize)) %>%
-      dplyr::rename(dDSS4 = estimate,
-             rDSS4 = effsize,
-             pDSS4 = p) %>%
-      mutate(DSS4_prcntl = rank(-rDSS4)/length(rDSS4)) 
-    gdsc_summary <- merge(av, stats, by = "treatment_id", all = T) %>%
-      arrange(-DSS4_prcntl) 
-  }
+  gdsc_summary <- lapply(c("limEC50", "AAC", "DSS1", "DSS2", "DSS3", "DSS4"), function(metric) {
+    submetrics <- gdsc_metrics %>%
+      mutate(selmetric = .[, grep(metric, colnames(.))]) %>%
+      dplyr::filter(!is.na(selmetric))
+    av <- submetrics %>%
+      group_by(ct, treatment_id) %>%
+      summarise(n = n(),
+                av = mean(selmetric, na.rm=T)) %>%
+      pivot_wider(names_from = ct,
+                  values_from = c(n, av))
+    nfilt <- filter_at(av, vars(starts_with("n")), all_vars(. > 3))
+    if (nrow(nfilt) < 1) {
+      metric_summary <- av %>%
+        mutate(d = NA,
+               r = NA,
+               p = NA,
+               prcntl = NA)
+    } else {
+      tmp <- submetrics %>%
+        filter(treatment_id %in% nfilt$treatment_id) %>%
+        mutate(z = scale(selmetric)[,1]) %>%
+        group_by(treatment_id) %>% 
+        filter(!all(selmetric==0))
+      stats <- tmp %>%
+        rstatix::wilcox_test(z ~ ct, ref.group = ct1, detailed = T)
+      eff <- tmp %>%
+        rstatix::wilcox_effsize(z ~ ct, ref.group = ct1)
+      stats <- merge(stats, eff[,4:5], by = c("treatment_id")) %>%
+        dplyr::select(treatment_id, estimate, effsize, p) %>%
+        mutate(effsize = ifelse(estimate < 0, -effsize, effsize)) %>%
+        dplyr::rename(d = estimate,
+                      r = effsize,
+                      p = p) %>%
+        mutate(prcntl = rank(-r)/length(r)) 
+      metric_summary <- merge(av, stats, by = "treatment_id", all = T) %>%
+        mutate(metric = metric)
+    }
+    return(metric_summary)
+  }) %>% bind_rows()
   
   #### merge GDSC + CTD + add drug info
   tmp <- drug_metrics %>%
@@ -317,15 +310,15 @@ lapply(1:nrow(comp), function(compidx) {
   ### weighted average per cpd
   cpd_level <- drug_summary %>%
     mutate(frac = inrange[match(treatment_id, inrange$treatment_id),]$frac) %>%
-    group_by(cpd_name) %>%
-    summarise(across(starts_with(c("av","dD","rD","pD")), 
-                     ~weighted.mean(., w = frac, na.rm = T)),
+    group_by(cpd_name, metric) %>%
+    summarise(across(starts_with(c("av")), ~weighted.mean(., w = frac, na.rm = T)),
+              across(d:p, ~weighted.mean(., w = frac, na.rm = T)),
               across(starts_with("n_"), ~sum(.)),
               datasets = paste0(unique(dataset), collapse=";")) %>%
-    ungroup() %>%
-    filter(!is.na(rDSS4)) %>%
-    mutate(DSS4_prcntl = rank(rDSS4, na.last = F)/length(rDSS4), .before=1) %>%
-    arrange(-DSS4_prcntl)
+    group_by(metric) %>%
+    filter(!is.na(r)) %>%
+    mutate(prcntl = rank(r, na.last = F)/length(r), .before=1) %>%
+    arrange(-prcntl)
   cpd_level <- merge(cpd_level, di, by="cpd_name")
   
   ########### combine drug screen + gene dep ############
@@ -338,45 +331,47 @@ lapply(1:nrow(comp), function(compidx) {
   #### gene lvl ####
   tmp1 <- combined %>% 
     filter(!is.na(entrez_id)) %>%
-    group_by(entrez_id) %>%
+    group_by(entrez_id, metric) %>%
     summarise(gene_symbol = paste(unique(gene_symbol), collapse=";"),
               gene_name = paste(unique(gene_name), collapse=";"),
               compounds = paste(cpd_name, collapse=";"),
               CRISPR_score = unique(CRISPR_prcntl),
               RNAi_score = unique(RNAi_prcntl),
-              DSS4_score = mean(DSS4_prcntl, na.rm=T)) %>%
-    mutate(gene_score = rowMeans(.[,c(5,7)], na.rm=T), .before=4) %>%
+              cpd_score = mean(prcntl, na.rm=T),
+              rCRISPR = unique(rCRISPR),
+              dCRISPR = unique(dCRISPR),
+              pCRISPR = unique(pCRISPR),
+              rRNAi = unique(rRNAi),
+              dRNAi = unique(dRNAi),
+              pRNAi = unique(pRNAi)) %>%
+    rowwise() %>% 
+    mutate(gene_score = mean(c(CRISPR_score, cpd_score), na.rm=T), .before=6) %>%
     filter(!is.na(CRISPR_score) | !is.na(RNAi_score))
   tmp2 <- combined %>% 
-    group_by(entrez_id) %>%
-    summarise(across(starts_with("d", ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with("r", ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with(c("pC","pR","pD"), ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with("av", ignore.case = F), ~mean(., na.rm=T))) 
-  genelvl <- merge(tmp1, tmp2, by=c("entrez_id")) %>%
+    group_by(entrez_id, metric) %>%
+    summarise(across(d:p, ~mean(., na.rm=T)),
+              across(starts_with("av_", ignore.case = F), ~mean(., na.rm=T))) 
+  genelvl <- merge(tmp1, tmp2, by=c("entrez_id", "metric")) %>%
     arrange(-gene_score)
   
   #### cpd lvl ####
   tmp1 <- combined %>% 
     dplyr::filter(!is.na(cpd_name)) %>%
-    group_by(cpd_name) %>%
+    group_by(cpd_name, metric) %>%
     summarise(pubchem_cid = unique(pubchem_cid),
               target_genes = paste(unique(gene_symbol), collapse=";"),
               pathways = paste(unique(pathways), collapse=";"),
               datasets = paste(unique(datasets), collapse=";"),
-              DSS4_score = unique(DSS4_prcntl),
+              metric_score = unique(prcntl),
               CRISPR_score = mean(CRISPR_prcntl, na.rm=T),
               RNAi_score = mean(RNAi_prcntl, na.rm=T)) %>%
     rowwise() %>% 
-    mutate(cpd_score = mean(c(DSS4_score, CRISPR_score), na.rm=T), .before=3) %>%
+    mutate(cpd_score = mean(c(metric_score, CRISPR_score), na.rm=T), .before=3) %>%
     filter(!is.na(cpd_score))
   tmp2 <- combined %>% 
-    group_by(cpd_name) %>%
-    summarise(across(starts_with(c("dD","dC","dR"), ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with(c("rD","rC","rR"), ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with(c("pD","pC","pR"), ignore.case = F), ~mean(., na.rm=T)),
-              across(starts_with(c("avD","avC","avR"), ignore.case = F), ~mean(., na.rm=T))) 
-  cpdlvl <- merge(tmp1, tmp2, by=c("cpd_name")) %>%
+    group_by(cpd_name, metric) %>%
+    summarise(across(d:p, ~mean(., na.rm=T))) 
+  cpdlvl <- merge(tmp1, tmp2, by=c("cpd_name","metric")) %>%
     arrange(-cpd_score)
   
   # save
@@ -385,6 +380,6 @@ lapply(1:nrow(comp), function(compidx) {
                 ct2 = ct2,
                 genelvl = genelvl,
                 cpdlvl = cpdlvl)
-  saveRDS(ctres, paste0("data/ctres/", ct1, "_vs_", ct2, "_diffsens.rds"))
+  saveRDS(ctres, paste0("data/ctres2/", ct1, "_vs_", ct2, "_diffsens.rds"))
 })
 
