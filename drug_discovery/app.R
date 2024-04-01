@@ -10,7 +10,15 @@ library(rvg)
 library(officer)
 library(RMariaDB)
 
+
+# orgdb <- org.Hs.eg.db::org.Hs.eg.db
+# geneinfo <- AnnotationDbi::select(orgdb, keys = AnnotationDbi::keys(orgdb, keytype = "ENTREZID"),
+#                                   keytype = "ENTREZID", columns = c("SYMBOL", "GENENAME"))
+# saveRDS(geneinfo, "geneinfo.2024-05-03.rds")
+
 ################################### Setup #####################################
+
+geneinfo <- readRDS("data/geneinfo.2024-05-03.rds")
 
 ### Database config
 dbname <- "DDDB"
@@ -487,14 +495,13 @@ server <- function(input, output, session) {
       if (is_empty(cpdsummary)) return(NULL)
       cpd_name <- unique(cpdsummary$cpd_name)
       print(cpd_name)
+      target_genes <- strsplit(cpdsummary$target_genes, split=";")[[1]]
+      print(target_genes)
+      target_eid <- unique(geneinfo[which(geneinfo$SYMBOL %in% target_genes),]$ENTREZID)
+      print(target_eid)
       reactvals$cpd_name <- cpd_name
-      gene_symbols <- unique(unlist(strsplit(cpdsummary$target_genes, ";")))
-      orgdb <- org.Hs.eg.db::org.Hs.eg.db
-      geneinfo <- AnnotationDbi::select(orgdb, keys = gene_symbols,
-                                        keytype = "SYMBOL", column = "ENTREZID")
-      print(geneinfo)
-      reactvals$target_gene_symbols <- gene_symbols
-      reactvals$target_gene_ids <- unique(geneinfo$ENTREZID)
+      reactvals$target_gene_symbols <- target_genes
+      reactvals$target_gene_ids <- target_eid
       return(cpd_name)
     })
 
@@ -728,22 +735,20 @@ server <- function(input, output, session) {
     output$cpd_crispr_box_ds <- renderPlot({
       print("crispr_box_ds")
       plotdat <- get_dep_metrics_cpd()
-      validate(need(!is_empty(plotdat),
-                    "      No CRISPR data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       plotdat <- plotdat %>%
         dplyr::filter(assay_type == "CRISPR")
-      validate(need(nrow(plotdat) > 1,
-                    "      No CRISPR data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       gen_boxplot(plotdat, "dg", "score", ylab = "CRISPR effect score")
     })
     # CRISPR boxplot by subtype
     output$cpd_crispr_box_st <- renderPlot({
       print("crispr_box_ds")
       plotdat <- get_dep_metrics_cpd()
-      validate(need(!is_empty(plotdat),
-                    "      No CRISPR data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       plotdat <- plotdat %>%
         dplyr::filter(assay_type == "CRISPR")
+      validate(need(!is_empty(plotdat),""))
       gen_boxplot(plotdat, "st", "score", ylab = "CRISPR effect score")
     })
     
@@ -753,7 +758,7 @@ server <- function(input, output, session) {
       print("crispr_dens")
       plotdat <- get_dep_metrics_cpd()
       validate(need(!is_empty(plotdat),
-                    "      No CRISPR data associated with selected compound"))
+                    "      No RNAi data associated with selected compound"))
       plotdat <- plotdat %>%
         dplyr::filter(assay_type == "RNAi")
       validate(need(nrow(plotdat) > 1,
@@ -764,30 +769,30 @@ server <- function(input, output, session) {
     output$cpd_rnai_box_ds <- renderPlot({
       print("rnai_box_ds")
       plotdat <- get_dep_metrics_cpd()
-      validate(need(!is_empty(plotdat),
-                    "      No RNAi data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       plotdat <- plotdat %>%
         dplyr::filter(assay_type == "RNAi")
-      validate(need(nrow(plotdat) > 1,
-                    "      No RNAi data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       gen_boxplot(plotdat, "dg", "score", ylab = "RNAi effect score")
     })
     # RNAi boxplot by subtype
     output$cpd_rnai_box_st <- renderPlot({
       print("rnai_box_st")
       plotdat <- get_dep_metrics_cpd()
-      validate(need(!is_empty(plotdat),
-                    "      No RNAi data associated with selected compound"))
+      validate(need(!is_empty(plotdat),""))
       plotdat <- plotdat %>%
         dplyr::filter(assay_type == "RNAi")
+      validate(need(!is_empty(plotdat),""))
       gen_boxplot(plotdat, "st", "score", ylab = "RNAi effect score")
     })
     
     # data table of dependency data
     output$cpd_dep_metrics_dt <- DT::renderDataTable({
-        dat <- get_dep_metrics_cpd() %>%
-          dplyr::select_at(c(1:5,8,10:17))
+        dat <- get_dep_metrics_cpd()
         if (is_empty(dat) | is_empty(reactvals$ct1)) return(NULL)
+        dat <- dat %>%
+          dplyr::select_at(c(1:5,8,10:17))
+        if (nrow(dat) < 1) return(NULL)
         # if (!is_empty(input$crispr_dens_brush)) {
         #     brushinfo <- input$crispr_dens_brush
         #     dat <- dat %>% dplyr::filter(score > brushinfo$xmin &

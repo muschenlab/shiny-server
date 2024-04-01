@@ -1,37 +1,20 @@
-library(org.Hs.eg.db)
 library(tidyverse)
 library(rstatix)
 library(coin)
 library(RMariaDB)
 
-## gene info
-orgdb <- org.Hs.eg.db
-keys <- AnnotationDbi::keys(orgdb, keytype='ENTREZID')
-gene_info <- AnnotationDbi::select(orgdb, keys = keys, 
-                                   columns = c("SYMBOL", "GENENAME")) %>%
-  dplyr::rename(entrez_id = ENTREZID,
-         gene_symbol = SYMBOL,
-         gene_name = GENENAME)
+# ## gene info
+# library(org.Hs.eg.db)
+# orgdb <- org.Hs.eg.db
+# keys <- AnnotationDbi::keys(orgdb, keytype='ENTREZID')
+# gene_info <- AnnotationDbi::select(orgdb, keys = keys, 
+#                                    columns = c("SYMBOL", "GENENAME")) %>%
+#   dplyr::rename(entrez_id = ENTREZID,
+#          gene_symbol = SYMBOL,
+#          gene_name = GENENAME)
+# saveRDS(gene_info, "data/geneinfo.2023-10-31.rds")
+gene_info <- readRDS("data/geneinfo.2023-10-31.rds")
 
-# # run t-test only if sufficient observations
-# filt_ttest <- function(x, metric, stat = "statistic", grouping_var = "ct") {
-#   grpn <- table(x[[grouping_var]])
-#   if(any(grpn < 2)) return(NA)
-#   tres <- t.test(reformulate(grouping_var, metric), x)
-#   return(tres[[stat]])
-# }
-# filt_wilcox_p <- function(x, metric, grouping_var = "ct") {
-#   grpn <- table(x[[grouping_var]])
-#   if(any(grpn < 2)) return(NA)
-#   statres <- rstatix::wilcox_test(x, reformulate(grouping_var, metric))
-#   return(statres$p)
-# }
-# filt_wilcox_eff <- function(x, metric, grouping_var = "ct") {
-#   grpn <- table(x[[grouping_var]])
-#   if(any(grpn < 2)) return(NA)
-#   effres <- rstatix::wilcox_effsize(x, reformulate(grouping_var, metric))
-#   return(effres$effsize)
-# }
 filt_wilcox <- function(x, metric, grouping_var = "ct", id_var = "entrez_id") {
   grpn <- table(x[[grouping_var]])
   if(any(grpn < 2)) return(NULL)
@@ -83,7 +66,8 @@ silist <- list("Solid tumor" = si[which(!si$ds_type %in% c("B-cell",
                                               grepl("lymphoma", si$ds_subtype)),],
                "Glioma" = si[which(si$ds_subtype %in% c("Glioblastoma",
                                                         "Glioma",
-                                                        "Astrocytoma")),])
+                                                        "Astrocytoma")),],
+               "AML" = si[which(si$ds_subtype %in% c("Acute myeloid leukemia (AML)")),])
 cts <- unique(si$ds_type); names(cts) <- cts
 tmp <- lapply(cts, function(ct) si[which(si$ds_type == ct),])
 silist <- c(silist, tmp)
@@ -92,8 +76,8 @@ silist <- silist[!names(silist) %in% c("Testicular", "Embryonal", "Eye",
                                        "Gallbladder", "Skin carcinoma")]
 
 ### set comaprisons ###
-comp <- data.frame(a = c("B-cell","T-cell", "T-cell leukemia", names(silist)[-1]),
-                   b = c("Myeloid","B-cell", "B-cell leukemia", rep("Solid tumor", length(silist)-1)))
+comp <- data.frame(a = c("B-cell leukemia", "B-cell lymphoma", "B-cell", "T-cell", "T-cell leukemia", names(silist)[-1]),
+                   b = c("AML", "AML", "Myeloid", "B-cell", "B-cell leukemia", rep("Solid tumor", length(silist)-1)))
 
 #################### calc stats for each disease group ###########################
 lapply(1:nrow(comp), function(compidx) {
