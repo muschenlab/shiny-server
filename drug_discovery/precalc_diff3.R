@@ -1,4 +1,5 @@
 library(tidyverse)
+library(fgsea)
 library(rstatix)
 library(coin)
 library(RMariaDB)
@@ -14,6 +15,11 @@ library(RMariaDB)
 #          gene_name = GENENAME)
 # saveRDS(gene_info, "data/geneinfo.2023-10-31.rds")
 gene_info <- readRDS("data/geneinfo.2023-10-31.rds")
+
+## load genesets
+pathdf <- readRDS("data/pathdf.2024-05-26.rds")
+pathls <- readRDS("data/pathls.2024-05-26.rds")
+metals <- readRDS("data/metals.2024-05-26.rds")
 
 ### database config ###
 dbname <- "DDDB"
@@ -55,7 +61,7 @@ silist <- list("Solid tumor" = si[which(!si$ds_type %in% c("B-cell",
                "Glioma" = si[which(si$ds_subtype %in% c("Glioblastoma",
                                                         "Glioma",
                                                         "Astrocytoma")),],
-               "CML" = si[grep("CML", si$ds_subtype),])
+               "AML" = si[grep("AML", si$ds_subtype),])
 cts <- unique(si$ds_type); names(cts) <- cts
 tmp <- lapply(cts, function(ct) si[which(si$ds_type == ct),])
 silist <- c(silist, tmp)
@@ -64,7 +70,7 @@ silist <- silist[!names(silist) %in% c("Testicular", "Embryonal", "Eye",
                                        "Gallbladder", "Skin carcinoma")]
 
 ### set comaprisons ###
-comp <- data.frame(a = c("CML","B-cell","T-cell", "T-cell leukemia", names(silist)[-1]),
+comp <- data.frame(a = c("AML","B-cell","T-cell", "T-cell leukemia", names(silist)[-1]),
                    b = c("Solid tumor","Myeloid","B-cell", "B-cell leukemia", rep("Solid tumor", length(silist)-1)))
 
 #################### calc stats for each disease group ###########################
@@ -74,7 +80,7 @@ lapply(1:nrow(comp), function(compidx) {
   ct1 <- comp[compidx, ]$a
   ct2 <- comp[compidx, ]$b
   print(paste0(ct1, " vs ", ct2))
-  if (file.exists(paste0("data/ctres3/", ct1, "_vs_", ct2, "_diffsens.rds"))) return(NULL)
+  if (file.exists(paste0("data/ctres4/", ct1, "_vs_", ct2, "_diffsens.rds"))) return(NULL)
   
   ######### sample info #########
   ct1_si <- silist[[ct1]] %>%
@@ -372,12 +378,120 @@ lapply(1:nrow(comp), function(compidx) {
   cpdlvl <- merge(tmp1, tmp2, by=c("cpd_name","metric")) %>%
     arrange(-cpd_score)
   
+  ########## pathways #################
+  ## merge metrics 
+  drugmetrics <- scale(cpdlvl[which(cpdlvl$metric=="AAC_obs"),]$r)[,1]
+  names(drugmetrics) <- cpdlvl[which(cpdlvl$metric=="AAC_obs"),]$cpd_name
+  genemetrics <- scale(-genelvl$rCRISPR)[,1]
+  names(genemetrics) <- genelvl$gene_symbol
+  genemetrics <- genemetrics[order(-genemetrics)]
+  genemetrics <- genemetrics[!duplicated(names(genemetrics))]
+  genemetrics <- genemetrics[!is.na(genemetrics)]
+  metrics <- c(drugmetrics, genemetrics)
+  metrics <- metrics[order(-metrics)]
+  metrics <- metrics[!is.na(metrics)]
+  metrics <- metrics[!duplicated(names(metrics))]
+  
+  ### GSEA
+  gsepath <- fgseaSimple(pathways=pathls, stats=metrics, minSize=4, nperm=1000) %>%
+    arrange(-NES) %>%
+    dplyr::rename(pathname = pathway)
+  gsemeta <- fgseaSimple(pathways=metals, stats=metrics, minSize=4, nperm=1000) %>%
+    arrange(-NES) %>%
+    dplyr::rename(metapath = pathway,
+                  nfeatures = size)
+  
+  ### add IDs/group info
+  matchidx <- match(gsepath$pathname, pathdf$pathname)
+  gsepath$pathid <- pathdf[matchidx,]$pathid
+  gsepath$metapath <- pathdf[matchidx,]$metapath
+  gsemeta$pathlist <- sapply(gsemeta$metapath, function(x) paste0(unique(pathdf[which(pathdf$metapath==x),]$pathid)))
+  gsemeta$npath <- sapply(gsemeta$metapath, function(x) length(unique(pathdf[which(pathdf$metapath==x),]$pathid)))
+  
+  # combined table
+  enrpaths <- gsepath[which(gsepath$pval < 0.1 & abs(gsepath$NES) > 1),]
+  enrgenes <- unique(unlist(sapply(enrpaths$leadingEdge, function(x) strsplit(x, split=","))))
+  summarytab <- rbind(data.frame(feature = gsemeta$metapath,
+                           enrichment_score = gsemeta$NES,
+                           feature_type = "Meta-pathway",
+                           n_features = gsemeta$nfeatures),
+                data.frame(feature = names(drugmetrics),
+                           enrichment_score = drugmetrics,
+                           feature_type = "Drug/Compound",
+                           n_features = 1),
+                data.frame(feature = names(genemetrics),
+                           enrichment_score = genemetrics,
+                           feature_type = "Gene/Protein",
+                           n_features = 1)) %>%
+    dplyr::arrange(-enrichment_score) %>%
+    dplyr::filter(!(feature_type == "Gene/Protein" & feature %in% enrgenes))
+  
+  ### simplify leadingedge
+  pastetop <- function(x, n=10) { paste0(x[1:min(length(x),n)], collapse=",") }
+  gsepath$leadingEdge <- sapply(gsepath$leadingEdge, pastetop)
+  gsemeta$leadingEdge <- sapply(gsemeta$leadingEdge, pastetop)
+  
+  ### pubmed count per gene
+  library(RISmed)
+  summarytab$pubn <- "NA"
+  summarytab$pubn[1:50] <- sapply(summarytab$feature[1:50], function(x) {
+    Sys.sleep(0.25)
+    res <- EUtilsSummary(paste0(ct1,"+",x), type="esearch", db="pubmed", datetype='pdat')
+    QueryCount(res)
+  })
+  summarytab$publink <- NA
+  summarytab$publink <- sapply(1:nrow(summarytab), function(rowidx) {
+    paste0('<a href="https://pubmed.ncbi.nlm.nih.gov/?term=',ct1,'+AND+',
+           summarytab[rowidx,]$feature,'&sort=date">',summarytab[rowidx,]$pubn,'</a>') })
+  summarytab <- summarytab %>%
+    filter(!(!is.na(pubn) & feature_type == "Gene/Protein" & pubn > 20))
+  
   # save
   ctres <- list(si = sisub,
                 ct1 = ct1,
                 ct2 = ct2,
                 genelvl = genelvl,
-                cpdlvl = cpdlvl)
-  saveRDS(ctres, paste0("data/ctres3/", ct1, "_vs_", ct2, "_diffsens.rds"))
+                cpdlvl = cpdlvl,
+                gsepath = gsepath,
+                gsemeta = gsemeta,
+                summarytab = summarytab)
+  saveRDS(ctres, paste0("data/ctres4/", ct1, "_vs_", ct2, "_diffsens.rds"))
 })
 
+###### TEMP - add potential misannotation info #####
+library(tidyverse)
+cpdcrisprcorr <- readRDS("data/corres_tmp.rds")
+cpdcrisprcorr <- cpdcrisprcorr %>%
+  group_by(cpd_name) %>%
+  summarise(target_genes = paste0(gene_symbol, collapse=","),
+            crispr_corr = paste0(round(crispr_cpdscore_cor,2), collapse=","),
+            anno_flag = !any(crispr_cpdscore_cor < -0.2))
+rhdruginfo <- read.delim("data/repurposing_drugs_20200324.txt", skip=9)
+geneinfo <- readRDS("data/geneinfo.2024-05-03.rds")
+files <- list.files("data/ctres4", full.names = T)
+lapply(files, function(filename) {
+  dat <- readRDS(filename)
+  # dat$cpdlvl <- merge(dat$cpdlvl[,1:13], cpdcrisprcorr, all.x = T) %>%
+  #   arrange(-r)
+  # dat$summarytab <- merge(dat$summarytab, cpdcrisprcorr, all.x = T, by.x="feature", by.y="cpd_name") %>%
+  #   arrange(-enrichment_score)
+  # dat$cpdlvl <- merge(dat$cpdlvl, rhdruginfo, by.x = "cpd_name", by.y = "pert_iname", all.x = T) %>%
+  #   mutate(anno_flag = ifelse(is.na(anno_flag), "NA", anno_flag)) %>%
+  #   mutate(anno_flag = ifelse(anno_flag == T, "No correlation with annotated target",
+  #                             ifelse(anno_flag == F, "Correlated with annotated target", "NA")))
+  # dat$cpdlvl$ntargets <- sapply(dat$cpdlvl$target_genes, function(x) length(unlist(strsplit(x, split = ";", fixed=T))))
+  # dat$cpdlvl <- dat$cpdlvl %>%
+  #   mutate(anno_flag = ifelse(ntargets > 3, "Broad-acting", anno_flag)) %>%
+  #   arrange(-r)
+  dat$summarytab <- merge(dat$summarytab, geneinfo, all.x = T, by.x = "feature", by.y = "SYMBOL")
+  dat$summarytab <- merge(dat$summarytab, rhdruginfo, all.x = T, by.x = "feature", by.y = "pert_iname")
+  dat$summarytab <- dat$summarytab %>%
+    mutate(description = ifelse(feature_type == "Gene/Protein", GENENAME, 
+                                ifelse(feature_type == "Drug/Compound", moa, NA)))
+  tmp1 <- dat$summarytab %>% group_by(feature_type) %>% top_n(5, enrichment_score) %>%
+    arrange(-enrichment_score)
+  tmp2 <- dat$summarytab %>% dplyr::filter(!feature %in% tmp1$feature) %>%
+    arrange(-enrichment_score)
+  dat$summarytab <- rbind(tmp1, tmp2)
+  saveRDS(dat, filename)
+})
