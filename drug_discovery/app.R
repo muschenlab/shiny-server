@@ -102,7 +102,7 @@ dilong <- di %>%
   dplyr::filter(!is.na(target_gene))
 
 ####### TEMP - put in db
-pathinfo <- readRDS("../../projects/MR_ChemGen/2024-12-01_init/wp_hs_curated_pathinfo.2025-05-19.rds")
+pathinfo <- readRDS("data/wp_hs_curated_pathinfo.2025-05-19.rds")
 
 # reactive values
 reactvals <- reactiveValues(gene = NULL, 
