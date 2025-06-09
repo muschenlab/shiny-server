@@ -439,7 +439,7 @@ server <- function(input, output, session) {
       reactvals$si <- query_db(query) %>%
         mutate(ct = factor(ct, levels=c(ct1, ct2)))
       # chemgen res
-      reactvals$pathlvl <- readRDS(paste0("../../drug_db/data/WP_GLMres_",
+      reactvals$pathlvl <- readRDS(paste0("data/ctres/WP_GLMres_",
                                           ct1, "_vs_", ct2, ".2025-05-02.rds")) %>%
         mutate(pathway_rank = rank(coef, ties.method = "random"))
       # fetch diff cpd sens
@@ -457,7 +457,7 @@ server <- function(input, output, session) {
         mutate(d = -d,  r= -r) %>% # invert scores so high = more sens
         arrange(-d)
       # metab
-      reactvals$metablvl <- readRDS(paste0("../../drug_db/data/",
+      reactvals$metablvl <- readRDS(paste0("data/ctres/",
                                  ct1, "_vs_", ct2, "_dmetab.rds")) %>%
         mutate(nl10p = -log10(p + 1e-25))
       return(NULL)
