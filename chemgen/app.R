@@ -144,13 +144,6 @@ ui <- fluidPage(
                fluidRow(align="center",
                         verbatimTextOutput("pathlvl_dotplot_hover_text")),
                br(),br(),
-               # summary table
-               tags$h3("Pathway info:"),
-               tags$h5("Select a row to explore sub pathways below"),
-               div(DT::dataTableOutput("pathlvl_summary_dt"),
-                   style = "font-size:90%"),
-               downloadButton("dl_pathlvl_summary_xls", label = "Download pathways summary",
-                              style = "font-size:12px;height:30px;padding:5px;"),
                # plots for 3-different levels
                fluidRow(align="center",
                         splitLayout(cellWidths = c("25%", "25%", "25%"),
@@ -164,7 +157,15 @@ ui <- fluidPage(
                                     plotOutput("pathcomp_cpd_volc", height = 375) %>%
                                       withSpinner(color = "#eed9e0ff"),
                                     plotOutput("pathcomp_metab_volc", height = 375) %>%
-                                      withSpinner(color = "#9b629588")))
+                                      withSpinner(color = "#9b629588"))),
+               # summary table
+               tags$h3("Pathway info:"),
+               tags$h5("Select a row to explore sub pathways below"),
+               div(DT::dataTableOutput("pathlvl_summary_dt"),
+                   style = "font-size:90%"),
+               downloadButton("dl_pathlvl_summary_xls", label = "Download pathways summary",
+                              style = "font-size:12px;height:30px;padding:5px;")
+               
       ),
         tabPanel("Compound-level",
 
@@ -523,7 +524,7 @@ server <- function(input, output, session) {
       DT::datatable(
         data = selpath,
         rownames = F,
-        selection = list(mode = 'single', target = "row", selected = 1))
+        selection = list(mode = 'single', target = "row", selected = 2))
     })
     output$dl_pathlvl_summary_xls <- downloadHandler(
       filename = function() {
