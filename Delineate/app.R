@@ -553,7 +553,7 @@ server <- function(input, output, session) {
         data = selpath,
         rownames = F,
         options = list(pageLength = 25),
-        selection = list(mode = 'single', target = "row", selected = 2))
+        selection = list(mode = 'single', target = "row", selected = 1))
     })
     output$dl_pathlvl_summary_xls <- downloadHandler(
       filename = function() {
