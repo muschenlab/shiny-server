@@ -101,7 +101,7 @@ dilong <- di %>%
   dplyr::filter(!is.na(target_gene))
 
 ####### TEMP - put in db
-pathinfo <- readRDS("data/wp_hs_curated_pathinfo.2025-07-09.rds")
+pathinfo <- readRDS("data/wp_hs_curated_pathinfo.2025-08-26.rds")
 
 # reactive values
 reactvals <- reactiveValues(gene = NULL, 
@@ -131,7 +131,7 @@ ui <- fluidPage(
              div(style = "display:inline-block;font-size:13px;", 
                  uiOutput("comparison_choice_ui")),
              div(style = "display:inline-block;", 
-                 actionButton(style = "font-size:13px;height:30px;padding:5px;text-align:center;line-height:10px;border-radius:4px;",
+                 actionButton(style = "font-size:13px;height:30px;padding:5px;text-align:center;", #line-height:10px;border-radius:4px;
                               "loadcomp", label = "Load comparison", icon = shiny::icon("refresh")))),
         
     
@@ -470,7 +470,7 @@ server <- function(input, output, session) {
         mutate(ct = factor(ct, levels=c(ct1, ct2)))
       # chemgen res
       reactvals$pathlvl <- readRDS(paste0("data/ctres/WP_GLMres_",
-                                          ct1, "_vs_", ct2, ".2025-05-02.rds")) %>%
+                                          ct1, "_vs_", ct2, ".2025-08-26.rds")) %>%
         mutate(pathway_rank = rank(coef, ties.method = "random"))
       # fetch diff cpd sens
       query <- paste0('SELECT * FROM diff_data INNER JOIN drug_info ON ',
