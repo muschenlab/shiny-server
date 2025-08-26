@@ -74,12 +74,20 @@ ctcompdf <- query_db('SELECT DISTINCT comp_id, ct, primaryct FROM comparisons;')
   arrange(-primaryct) %>% 
   summarise(ct1 = ct[1], ct2 = ct[2]) %>%
   ungroup() %>% 
-  mutate(compname = paste0(ct1, " vs ", ct2)) %>%
-  arrange(ct1) %>%
   filter(ct1 %in% c("B-cell", "T-cell", "Bone", "Breast",
-                    "Colorectal", "Lung", "Kidney", "Melanoma",
-                    "CNS", "Pancreas", "Myeloid")) %>%
-  filter(ct2 == "Solid tumor")
+                    "Colorectal", "Lung", "Melanoma",
+                    "CNS", "Pancreas", "Myeloid", "Kidney")) %>%
+  mutate(ct1_label = factor(ct1, 
+                            levels = c("B-cell", "T-cell", "Myeloid", "Breast",
+                                       "Colorectal", "Lung", "Melanoma",
+                                       "CNS",  "Bone", "Pancreas", "Kidney"),
+                            labels = c("B-cell", "T-cell", "Myeloid", "Breast",
+                                       "Colorectal", "Lung", "Melanoma",
+                                       "Neuronal",  "Osteoblastic", "Pancreatic", "Renal"))) %>%
+  arrange(ct1_label) %>%
+  filter(ct2 == "Solid tumor") %>%
+  mutate(ct2_label = "Other lineages") %>%
+  mutate(compname = paste0(ct1_label, " vs ", ct2_label))
 # idxorder <- unique(c(grep("B-cell vs Solid tumor", ctcompdf$compname),
 #                      grep("B-cell", ctcompdf$ct1), 1:nrow(ctcompdf)))
 # ctcompdf <- ctcompdf[idxorder,]
@@ -118,8 +126,7 @@ ui <- fluidPage(
     tags$style(HTML(".tabbable > .nav > li > a { color:#A7C4C6FF}")),
     tags$style(HTML(".tabbable > .nav > li[class=active] > a { color:black}")),
     
-    # celltype comparison choice
-    tags$h3("Celltype comparison:"),
+    # lineage comparison choice
     fluidRow(align="center",
              div(style = "display:inline-block;font-size:13px;", 
                  uiOutput("comparison_choice_ui")),
@@ -130,7 +137,7 @@ ui <- fluidPage(
     
     # main UI
     tabsetPanel(id = "maintabs",
-      tabPanel("Pathway-level",
+      tabPanel("Pathway dependency",
                # dotplot
                tags$h3("Differential pathway sensitivity:"),
                fluidRow(align="center",
@@ -143,9 +150,9 @@ ui <- fluidPage(
                # plots for 3-different levels
                fluidRow(align="center",
                         splitLayout(cellWidths = c("25%", "25%", "25%"),
-                                    tags$h4("Protein-level"),
-                                    tags$h4("Compound-level"),
-                                    tags$h4("Metabolite-level"))),
+                                    tags$h4("Protein dependency"),
+                                    tags$h4("Compound sensitivity"),
+                                    tags$h4("Metabolite abundance"))),
                fluidRow(align="center",
                         splitLayout(cellWidths = c("25%", "25%", "25%"),
                                     plotOutput("pathcomp_gene_volc", height = 375) %>%
@@ -156,14 +163,13 @@ ui <- fluidPage(
                                       withSpinner(color = "#9b629588"))),
                # summary table
                tags$h3("Pathway info:"),
-               tags$h5("Select a row to explore sub pathways below"),
                div(DT::dataTableOutput("pathlvl_summary_dt"),
                    style = "font-size:90%"),
                downloadButton("dl_pathlvl_summary_xls", label = "Download pathways summary",
                               style = "font-size:12px;height:30px;padding:5px;")
                
       ),
-        tabPanel("Compound-level",
+        tabPanel("Compound sensitivity",
 
                  # scatter plot of average
                  tags$h3("Differential sensitivity per compound:"),
@@ -194,7 +200,7 @@ ui <- fluidPage(
 
                  # rankings plot
                  tags$h4("Differential ranking:"),
-                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively sensitive the celltype of interest ",
+                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively sensitive the lineage of interest ",
                                 "is relative to the control population (higher rank = more selective). Three primary metrics are ",
                                 "considered - the CRISPR effect score, RNAi effect score, and compound sensitivity score (CSS).")),
                  fluidRow(align="center",
@@ -251,7 +257,7 @@ ui <- fluidPage(
                  downloadButton("dl_cpd_dep_metrics_xls", label = "Download dependency metrics",
                                 style = "font-size:12px;height:30px;padding:5px;")
         ),
-        tabPanel("Protein-level",
+        tabPanel("Protein dependency",
 
                  tags$h3("Differential gene dependency scores:"),
                  tags$h5("Drag a box around points to select genes of interest"),
@@ -293,7 +299,7 @@ ui <- fluidPage(
                  
                  # rankings plot
                  tags$h4("Differential ranking:"),
-                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively dependent the celltype of interest ",
+                 tags$h5(paste0("Differential sensitivity ranks indicate how selectively dependent the lineage of interest ",
                                 "is relative to the control population (higher rank = more selective). Three primary metrics are ",
                                 "considered - the CRISPR effect score, RNAi effect score, and compound sensitivity score (CSS).")),
                  fluidRow(align="center",
@@ -322,7 +328,7 @@ ui <- fluidPage(
                                       plotOutput("rnai_box_st_dep", height = 225)))
                  
         ),
-        tabPanel("Metabolite-level",
+        tabPanel("Metabolite abundance",
                  
                  tags$h3("Differential metabolite levels:"),
                  tags$h5("Drag a box around points to select metabolites of interest"),
@@ -429,21 +435,22 @@ server <- function(input, output, session) {
       reactvals$selcompid <- ifelse(is_empty(reactvals$selcompid), 
                                     ctcompdf$comp_id[1], reactvals$selcompid)
       selcompname <- ctcompdf[which(ctcompdf$comp_id==reactvals$selcompid),]$compname
-      selectInput('comparison_choice', "Selected cell type comparison", 
+      selectInput('comparison_choice', "Selected lineage comparison", 
                   ctcompdf$compname, selcompname)
     })
     
     # react to cell type comparison choice/load button
     observeEvent(input$loadcomp, {
       print("loadbuttonclicked")
-      load_comparison()
-    })
-    eventReactive(input$comparison_choice, {
       reactvals$selcompid <- ctcompdf[which(ctcompdf$compname==input$comparison_choice),]$comp_id
       load_comparison()
     })
+    # eventReactive(input$comparison_choice, {
+    #   
+    #   load_comparison()
+    # })
     
-    # load celltype comparison data
+    # load lineage comparison data
     load_comparison <- reactive({
       print("load_comparison")
       # if (is_empty(input$comparison_choice)) return(NULL)
@@ -452,6 +459,8 @@ server <- function(input, output, session) {
       reactvals$comp_id <- comp_id <- ctcompdf[compidx,]$comp_id
       reactvals$ct1 <- ct1 <- ctcompdf[compidx,]$ct1
       reactvals$ct2 <- ct2 <- ctcompdf[compidx,]$ct2
+      reactvals$ct1_label <- ct1_label <- ctcompdf[compidx,]$ct1_label
+      reactvals$ct2_label <- ct1_label <- ctcompdf[compidx,]$ct2_label
       # fetch sample info
       query <- paste0('SELECT sample_info.*, comparisons.ct ',
                       'FROM sample_info INNER JOIN comparisons ON ',
@@ -479,7 +488,7 @@ server <- function(input, output, session) {
         arrange(-d)
       # fetch diff metab
       reactvals$metablvl <- readRDS(paste0("data/ctres/",
-                                 ct1, "_vs_", ct2, "_dmetab.rds")) %>%
+                                    ct1, "_vs_", ct2, "_dmetab.rds")) %>%
         mutate(nl10p = -log10(p + 1e-25))
       return(NULL)
     })
@@ -543,6 +552,7 @@ server <- function(input, output, session) {
       DT::datatable(
         data = selpath,
         rownames = F,
+        options = list(pageLength = 25),
         selection = list(mode = 'single', target = "row", selected = 2))
     })
     output$dl_pathlvl_summary_xls <- downloadHandler(
@@ -723,16 +733,19 @@ server <- function(input, output, session) {
                       `Datasets` = datasets,
                       `Signif (-log10P)` = p)
       colnames(cpdsub) <- gsub("_", " ", colnames(cpdsub))
+      colnames(cpdsub) <- gsub("ct1", reactvals$ct1_label, colnames(cpdsub))
+      colnames(cpdsub) <- gsub("ct2", reactvals$ct2_label, colnames(cpdsub))
       DT::datatable(
         data = cpdsub,
         rownames = F,
+        options = list(pageLength = 25),
         selection = list(mode = 'multiple', target = "row")
       )
     })
     output$dl_cpd_summary_xls <- downloadHandler(
       filename = function() {
-        paste0("Compounds_summary_table_", reactvals$ct1, "_vs_",
-               reactvals$ct2, ".xlsx")
+        paste0("Compounds_summary_table_", reactvals$ct1_label, "_vs_",
+               reactvals$ct2_label, ".xlsx")
       },
       content = function(file) {
         drug_summary <- get_sel_cpd()
@@ -976,8 +989,7 @@ server <- function(input, output, session) {
                         "Subtype" = ds_subtype)
         DT::datatable(data = metrics,
                       rownames = F,
-                      options = list(lengthMenu = c(5, 10, 25),
-                                     pageLength = 5))
+                      options = list(pageLength = 10))
     })
     # DT download buttons
     output$dl_cpd_metrics_xls <- downloadHandler(
@@ -1127,7 +1139,7 @@ server <- function(input, output, session) {
             data = dat,
             rownames = F,
             selection = "none",
-            options = list(lengthMenu = c(5, 10, 25), pageLength = 5))
+            options = list(pageLength = 10))
     })
     output$dl_cpd_dep_metrics_xls <- downloadHandler(
       filename = function() {
@@ -1261,6 +1273,7 @@ server <- function(input, output, session) {
         sel_genedep <- sel_genedep %>%
           dplyr::select(entrez_id:gene_name, metric:n_ct2) %>%
           mutate_if(is.numeric, round, digits=2) %>%
+          arrange(-d) %>%
           dplyr::rename("Entrez ID" = entrez_id,
                         'Gene symbol' = gene_symbol,
                         'Gene name' = gene_name,
@@ -1268,11 +1281,12 @@ server <- function(input, output, session) {
                         'Difference' = d,
                         'Significance (-log10P)' = p)
         colnames(sel_genedep) <- sub("_", " ", colnames(sel_genedep))
-        colnames(sel_genedep) <- sub("ct1", reactvals$ct1, colnames(sel_genedep))
-        colnames(sel_genedep) <- sub("ct2", reactvals$ct2, colnames(sel_genedep))
+        colnames(sel_genedep) <- sub("ct1", reactvals$ct1_label, colnames(sel_genedep))
+        colnames(sel_genedep) <- sub("ct2", reactvals$ct2_label, colnames(sel_genedep))
         DT::datatable(
             data = sel_genedep,
             rownames = F,
+            options = list(pageLength = 25),
             selection = list(mode = 'single', target = "row", selected = 1)
         )
     })
@@ -1311,7 +1325,7 @@ server <- function(input, output, session) {
       print("sel_gene_text")
       depselrow <- get_sel_deprow()
       if(is_empty(depselrow)) return(NULL)
-      HTML(paste0("<h4>Selected gene: <b>", reactvals$dep_gene_symbol,
+      HTML(paste0("<h4>Selected protein: <b>", reactvals$dep_gene_symbol,
                   "</b>, Compounds targetting: <b>", 
                   paste0(reactvals$dep_compounds, collapse=", "), "</b></h4>"))
     })
@@ -1419,7 +1433,7 @@ server <- function(input, output, session) {
     output$crispr_box_st_dep <- renderPlot({
       print("crispr_box_st_dep")
       validate(need(!is_empty(reactvals$seldeprow_depmetrics),
-                    "      No CRISPR data associated with selected gene"))
+                    "      No CRISPR data associated with selected protein"))
       plotdat <- reactvals$seldeprow_depmetrics %>%
         dplyr::filter(assay_type == "CRISPR")
       gen_boxplot(plotdat, "st", "score", ylab = "CRISPR effect score")
@@ -1430,29 +1444,29 @@ server <- function(input, output, session) {
     output$rnai_dens_dep <- renderPlot({
       print("rnai_dens_dep")
       validate(need(!is_empty(reactvals$seldeprow_depmetrics),
-                    "      No CRISPR data associated with selected gene"))
+                    "      No CRISPR data associated with selected protein"))
       plotdat <- reactvals$seldeprow_depmetrics %>%
         dplyr::filter(assay_type == "RNAi")
       validate(need(nrow(plotdat) > 1,
-                    "      No RNAi data associated with selected gene"))
+                    "      No RNAi data associated with selected protein"))
       gen_densplot(plotdat, "score", "ct", xlab = "RNAi effect score")
     })
     # RNAi boxplot by disease
     output$rnai_box_ds_dep <- renderPlot({
       print("rnai_box_ds_dep")
       validate(need(!is_empty(reactvals$seldeprow_depmetrics),
-                    "      No RNAi data associated with selected gene"))
+                    "      No RNAi data associated with selected protein"))
       plotdat <- reactvals$seldeprow_depmetrics %>%
         dplyr::filter(assay_type == "RNAi")
       validate(need(nrow(plotdat) > 1,
-                    "      No RNAi data associated with selected gene"))
+                    "      No RNAi data associated with selected protein"))
       gen_boxplot(plotdat, "dg", "score", ylab = "RNAi effect score")
     })
     # RNAi boxplot by subtype
     output$rnai_box_st_dep <- renderPlot({
       print("rnai_box_st_dep")
       validate(need(!is_empty(reactvals$seldeprow_depmetrics),
-                    "      No RNAi data associated with selected gene"))
+                    "      No RNAi data associated with selected protein"))
       plotdat <- reactvals$seldeprow_depmetrics %>%
         dplyr::filter(assay_type == "RNAi")
       gen_boxplot(plotdat, "st", "score", ylab = "RNAi effect score")
@@ -1556,7 +1570,7 @@ server <- function(input, output, session) {
       metabsub <- get_sel_metablvl()
       if (is.null(metabsub)) return(NULL)
       metabsub <- metabsub %>%
-        # select_at(c(1, 9:10, 21, 12:13, 14:15, 22, 17:18)) %>%
+        arrange(d) %>%
         dplyr::select(-"p") %>%
         mutate(prcntl = prcntl*100) %>%
         mutate_if(is.numeric, round, digits=2) %>%
@@ -1566,10 +1580,13 @@ server <- function(input, output, session) {
                       'Rank %' = prcntl,
                       'NL10 P-val' = nl10p)
       colnames(metabsub) <- sub("_", " ", colnames(metabsub))
+      colnames(metabsub) <- sub("ct1", reactvals$ct1_label, colnames(metabsub))
+      colnames(metabsub) <- sub("ct2", reactvals$ct2_label, colnames(metabsub))
       DT::datatable(
         data = metabsub,
         rownames = F,
-        selection = list(mode = 'single', target = "row", selected = 1)
+        options = list(pageLength = 25),
+        selection = list(mode = 'multiple', target = "row", selected = 1)
       )
     })
     output$dl_metab_summary_xls <- downloadHandler(
