@@ -10,15 +10,16 @@ library(rvg)
 library(officer)
 library(RMariaDB)
 
+# dbconfig
+db_name <- "DDDB"
+cnf_file <- list.files("data", pattern = paste0(db_name, ".cnf$"), full.names = T)
+
 ##### functions
-# function to get top + tail
 toptail <- function(x, n=100) {
   a <- head(x, n)
   b <- tail(x, n)
   rbind(a,b)
 }
-
-# function to generate pptx
 gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
   read_pptx() %>%
     add_slide(layout = "Title and Content", master = "Office Theme") %>%
@@ -28,8 +29,6 @@ gen_pptx <- function(plot, file, height = 5, width = 5, left = 1, top = 1) {
             bg = "transparent") %>%
     print(target = file)
 }
-
-# boxplot function
 gen_boxplot <- function(plotdat, x,  y, color = "ct", xlab = "", ylab) {
   if (is_empty(plotdat)) return(NULL)
   ggplot(plotdat, aes_string(x = x, y = y)) +
@@ -42,8 +41,6 @@ gen_boxplot <- function(plotdat, x,  y, color = "ct", xlab = "", ylab) {
     scale_fill_manual(values=c("#994444", "grey80"))
     # scale_fill_manual(values=pickcols(jellypal, length(levels(plotdat[,x]))))
 }
-
-# density plot function
 gen_densplot <- function(plotdat, x, y, color = "ct", xlab, ylab = "Frequency") {
   if (is_empty(plotdat)) return(NULL)
   ggplot(plotdat, aes_string(x = x)) +
@@ -57,15 +54,9 @@ gen_densplot <- function(plotdat, x, y, color = "ct", xlab, ylab = "Frequency") 
     scale_fill_manual(values=c("#994444", "grey80"))
     # scale_fill_manual(values=pickcols(jellypal, length(levels(plotdat[,y]))))
 }
-
-# print plain labels on log scale axis
-plain <- function(x,...) {
+unlog_axis <- function(x,...) {
   format(x, ..., scientific = FALSE, drop0trailing = TRUE)
 }
-
-# query wrapper
-db_name <- "DDDB"
-cnf_file <- list.files("data", pattern = paste0(db_name, ".cnf$"), full.names = T)
 query_db <- function(query, cnffile = cnf_file, dbname = db_name) {
   db <- dbConnect(RMariaDB::MariaDB(), default.file = cnffile, group = dbname)
   queryres <- dbSendQuery(db, query)
@@ -78,31 +69,31 @@ query_db <- function(query, cnffile = cnf_file, dbname = db_name) {
 ################################### Setup #####################################
 
 ## load contrast options
-query <- paste0('SELECT DISTINCT comp_id, ct, primaryct FROM comparisons;')
-ctcompdf <- query_db(query) %>%
+ctcompdf <- query_db('SELECT DISTINCT comp_id, ct, primaryct FROM comparisons;') %>%
   group_by(comp_id) %>% 
   arrange(-primaryct) %>% 
   summarise(ct1 = ct[1], ct2 = ct[2]) %>%
   ungroup() %>% 
   mutate(compname = paste0(ct1, " vs ", ct2)) %>%
-  arrange(ct1)
-idxorder <- c(grep("B-cell vs Solid tumor", ctcompdf$compname),
-         grep("B-cell", ctcompdf$ct1), 1:nrow(ctcompdf))
-idxorder <- unique(idxorder)
-ctcompdf <- ctcompdf[idxorder,]
+  arrange(ct1) %>%
+  filter(ct1 %in% c("B-cell", "T-cell", "Bone", "Breast",
+                    "Colorectal", "Lung", "Kidney", "Melanoma",
+                    "CNS", "Pancreas", "Myeloid")) %>%
+  filter(ct2 == "Solid tumor")
+# idxorder <- unique(c(grep("B-cell vs Solid tumor", ctcompdf$compname),
+#                      grep("B-cell", ctcompdf$ct1), 1:nrow(ctcompdf)))
+# ctcompdf <- ctcompdf[idxorder,]
 
 ## pre-load gene and compound info
-query <- paste0('SELECT * FROM gene_info;')
-gi <- query_db(query)
-query <- paste0('SELECT * FROM drug_info;')
-di <- query_db(query)
+gi <- query_db('SELECT * FROM gene_info;')
+di <- query_db('SELECT * FROM drug_info;')
 dilong <- di %>%
   tidyr::separate_rows(target_genes) %>%
   dplyr::rename(target_gene = target_genes) %>%
   dplyr::filter(!is.na(target_gene))
 
 ####### TEMP - put in db
-pathinfo <- readRDS("data/wp_hs_curated_pathinfo.2025-05-19.rds")
+pathinfo <- readRDS("data/wp_hs_curated_pathinfo.2025-07-09.rds")
 
 # reactive values
 reactvals <- reactiveValues(gene = NULL, 
@@ -115,11 +106,11 @@ reactvals <- reactiveValues(gene = NULL,
 ui <- fluidPage(
     
     # title
-    title = "ChemGen", 
+    title = "Delineate", 
     theme = shinytheme("cosmo"),
     titlePanel(tags$h2(tags$a(
         imageOutput("icon", inline = TRUE),
-        href="http://137.184.200.69:3838/"), "ChemGen")),
+        href="http://137.184.200.69:3838/"), "Delineate: Dependency Lineage Target Explorer")),
     
     # change colors for DT row/column selection
     tags$style(HTML('table.dataTable tr.selected td{background-color: #B9869F99 !important;}')),
@@ -129,11 +120,16 @@ ui <- fluidPage(
     
     # celltype comparison choice
     tags$h3("Celltype comparison:"),
-    div(style = "font-size:13px;", 
-        fluidRow(column(width=3,uiOutput("comparison_choice_ui")))),
+    fluidRow(align="center",
+             div(style = "display:inline-block;font-size:13px;", 
+                 uiOutput("comparison_choice_ui")),
+             div(style = "display:inline-block;", 
+                 actionButton(style = "font-size:13px;height:30px;padding:5px;text-align:center;line-height:10px;border-radius:4px;",
+                              "loadcomp", label = "Load comparison", icon = shiny::icon("refresh")))),
+        
     
     # main UI
-    tabsetPanel(
+    tabsetPanel(id = "maintabs",
       tabPanel("Pathway-level",
                # dotplot
                tags$h3("Differential pathway sensitivity:"),
@@ -417,18 +413,42 @@ server <- function(input, output, session) {
                                     height = "95px", width = "85px"), 
                                deleteFile = F)
     
-    # cell type comparison choice UI
-    output$comparison_choice_ui <- renderUI({
-        selectInput('comparison_choice', "Selected cell type comparison", 
-                    ctcompdf$compname, ctcompdf$compname[1])
+    # check for parameters in url
+    get_url_parameters <- reactive({
+      query <- parseQueryString(session$clientData$url_search)
+      reactvals$selcompid <- ifelse(is_empty(query$compid), 
+                                    ctcompdf$comp_id[1], query$compid)
+      if (!is_empty(query$compid)) load_comparison()
+      if (!is_empty(query$tab)) updateTabsetPanel(inputId = "maintabs",
+                                                  selected = query$tab)
     })
     
-    # load ctcomp res
+    # cell type comparison choice UI
+    output$comparison_choice_ui <- renderUI({
+      get_url_parameters()
+      reactvals$selcompid <- ifelse(is_empty(reactvals$selcompid), 
+                                    ctcompdf$comp_id[1], reactvals$selcompid)
+      selcompname <- ctcompdf[which(ctcompdf$comp_id==reactvals$selcompid),]$compname
+      selectInput('comparison_choice', "Selected cell type comparison", 
+                  ctcompdf$compname, selcompname)
+    })
+    
+    # react to cell type comparison choice/load button
+    observeEvent(input$loadcomp, {
+      print("loadbuttonclicked")
+      load_comparison()
+    })
+    eventReactive(input$comparison_choice, {
+      reactvals$selcompid <- ctcompdf[which(ctcompdf$compname==input$comparison_choice),]$comp_id
+      load_comparison()
+    })
+    
+    # load celltype comparison data
     load_comparison <- reactive({
       print("load_comparison")
-      if (is_empty(input$comparison_choice)) return(NULL)
+      # if (is_empty(input$comparison_choice)) return(NULL)
       # set comparison info
-      compidx <- which(ctcompdf$compname == input$comparison_choice)
+      compidx <- which(ctcompdf$comp_id == reactvals$selcompid)
       reactvals$comp_id <- comp_id <- ctcompdf[compidx,]$comp_id
       reactvals$ct1 <- ct1 <- ctcompdf[compidx,]$ct1
       reactvals$ct2 <- ct2 <- ctcompdf[compidx,]$ct2
@@ -449,7 +469,7 @@ server <- function(input, output, session) {
                       'WHERE diff_data.comp_id = "', comp_id, '"',
                       'AND diff_data.metric IN ("CSS","AAC","EC50")', ';')
       reactvals$cpdlvl <- query_db(query) %>% arrange(-d)
-      # fetch delta dependency info
+      # fetch diff dependency
       query <- paste0('SELECT * FROM diff_data INNER JOIN gene_info ON ',
                       'diff_data.feature_id=gene_info.entrez_id ',
                       'WHERE diff_data.comp_id = "', comp_id, '"',
@@ -457,7 +477,7 @@ server <- function(input, output, session) {
       reactvals$genelvl <- query_db(query) %>% 
         mutate(d = -d,  r= -r) %>% # invert scores so high = more sens
         arrange(-d)
-      # metab
+      # fetch diff metab
       reactvals$metablvl <- readRDS(paste0("data/ctres/",
                                  ct1, "_vs_", ct2, "_dmetab.rds")) %>%
         mutate(nl10p = -log10(p + 1e-25))
@@ -468,7 +488,6 @@ server <- function(input, output, session) {
     # plot
     output$pathlvl_dotplot <- renderPlot({
       print("pathlvl_dotplot")
-      tmp <- load_comparison()
       if(is_empty(reactvals$pathlvl)) return(NULL)
       plotdat <- reactvals$pathlvl
       ct1 <- reactvals$ct1
@@ -503,7 +522,7 @@ server <- function(input, output, session) {
     })
     # hovered
     output$pathlvl_dotplot_hover_text <- renderText({
-      if (is_empty(input$pathlvl_dotplot_hover)) return(NULL)
+      if (is_empty(reactvals$pathlvl) | is_empty(input$pathlvl_dotplot_hover)) return(NULL)
       pathsub <- reactvals$pathlvl %>%
         nearPoints(input$pathlvl_dotplot_hover)
       paste0("Pathways near cursor: ", paste0(unique(pathsub$pathway_name), collapse=";"))
@@ -1127,7 +1146,6 @@ server <- function(input, output, session) {
      
     # scatter plot of differential CRISPR scores
     gen_crispr_volc <- reactive({
-      tmp <- load_comparison()
       if(is_empty(reactvals$genelvl)) return(NULL)
       plotdat <- reactvals$genelvl %>%
         filter(metric == "CRISPR") %>%
@@ -1215,8 +1233,8 @@ server <- function(input, output, session) {
             brushedPoints(input$crispr_scatter_brush)
         }
       } else {
-        genesub <- genesub %>%
-          toptail(n=250)
+        genesub <- genesub #%>%
+          #toptail(n=250)
       }
       return(genesub)
     })
